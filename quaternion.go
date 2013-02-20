@@ -6,6 +6,7 @@
 
 package vmath
 
+/*
 func QCopy(result, quat *Quat) {
 	result.X = quat.X
 	result.Y = quat.Y
@@ -276,3 +277,4 @@ func QSelect(result, quat0, quat1 *Quat, select1 int) {
 		result.W = quat0.W
 	}
 }
+*/
