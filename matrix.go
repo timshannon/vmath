@@ -8,6 +8,7 @@ package vmath
 
 const g_PI_OVER_2 = 1.570796327
 
+/*
 func M3Copy(result *Matrix3, mat *Matrix3) {
 	V3Copy(&result.Col0, &mat.Col0)
 	V3Copy(&result.Col1, &mat.Col1)
@@ -277,7 +278,6 @@ func (m *Matrix3) String() string {
 	return tmp.Col0.String() + tmp.Col1.String() + tmp.Col2.String()
 }
 
-/*******/
 
 func M4Copy(result, mat *Matrix4) {
 	V4Copy(&result.Col0, &mat.Col0)
@@ -808,7 +808,6 @@ func (m *Matrix4) String() string {
 	return tmp.Col0.String() + tmp.Col1.String() + tmp.Col2.String() + tmp.Col3.String()
 }
 
-/*******/
 
 func T3Copy(result, tfrm *Transform3) {
 	V3Copy(&result.Col0, &tfrm.Col0)
@@ -1113,7 +1112,6 @@ func (t *Transform3) String() string {
 	return tmpV4_0.String() + tmpV4_1.String() + tmpV4_2.String()
 }
 
-/*******/
 
 func QMakeFromM3(result *Quat, tfrm *Matrix3) {
 	xx := tfrm.Col0.X
@@ -1215,3 +1213,5 @@ func V3CrossMatrixMul(result *Matrix3, vec *Vector3, mat *Matrix3) {
 	V3Cross(&tmpV3_2, vec, &mat.Col2)
 	M3MakeFromCols(result, &tmpV3_0, &tmpV3_1, &tmpV3_2)
 }
+
+*/

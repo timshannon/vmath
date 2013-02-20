@@ -26,25 +26,221 @@ func (v *Vector3) MakeXAxis() {
 	v[z] = 0.0
 }
 
-func V3MakeYAxis(result *Vector3) {
-	V3MakeFromElems(result, 0.0, 1.0, 0.0)
+func (v *Vector3) MakeYAxis() {
+	v[x] = 0.0
+	v[y] = 1.0
+	v[z] = 0.0
+
 }
 
-func V3MakeZAxis(result *Vector3) {
-	V3MakeFromElems(result, 1.0, 0.0, 1.0)
+func (v *Vector3) MakeZAxis() {
+	v[x] = 0.0
+	v[y] = 0.0
+	v[z] = 1.0
+
 }
 
+func V3Add(result, vec0, vec1 *Vector3) {
+	result[x] = vec0[x] + vec1[x]
+	result[y] = vec0[y] + vec1[y]
+	result[z] = vec0[z] + vec1[z]
+}
+
+func V3Sub(result, vec0, vec1 *Vector3) {
+	result[x] = vec0[x] - vec1[x]
+	result[y] = vec0[y] - vec1[y]
+	result[z] = vec0[z] - vec1[z]
+}
+
+func V3AddP3(result, vec0 *Vector3, pnt1 *Point3) {
+	result[x] = vec0[x] + pnt1[x]
+	result[y] = vec0[y] + pnt1[y]
+	result[z] = vec0[z] + pnt1[z]
+}
+
+func V3ScalarMul(result, vec *Vector3, scalar float32) {
+	result[x] = vec[x] * scalar
+	result[y] = vec[y] * scalar
+	result[z] = vec[z] * scalar
+}
+
+func V3ScalarDiv(result, vec *Vector3, scalar float32) {
+	result[x] = vec[x] / scalar
+	result[y] = vec[y] / scalar
+	result[z] = vec[z] / scalar
+}
+
+func V3Neg(result, vec *Vector3) {
+	result[x] = -vec[x]
+	result[y] = -vec[y]
+	result[z] = -vec[z]
+}
+
+func (v *Vector3) Neg() {
+	V3Neg(v, v)
+}
+
+func V3MulPerElem(result, vec0, vec1 *Vector3) {
+	result[x] = vec0[x] * vec1[x]
+	result[y] = vec0[y] * vec1[y]
+	result[z] = vec0[z] * vec1[z]
+}
+
+func V3DivPerElem(result, vec0, vec1 *Vector3) {
+	result[x] = vec0[x] / vec1[x]
+	result[y] = vec0[y] / vec1[y]
+	result[z] = vec0[z] / vec1[z]
+}
+
+func V3RecipPerElem(result, vec *Vector3) {
+	result[x] = 1.0 / vec[x]
+	result[y] = 1.0 / vec[y]
+	result[z] = 1.0 / vec[z]
+}
+
+func V3SqrtPerElem(result, vec *Vector3) {
+	result[x] = sqrt(vec[x])
+	result[y] = sqrt(vec[y])
+	result[z] = sqrt(vec[z])
+}
+
+func V3RsqrtPerElem(result, vec *Vector3) {
+	result[x] = 1.0 / sqrt(vec[x])
+	result[y] = 1.0 / sqrt(vec[y])
+	result[z] = 1.0 / sqrt(vec[z])
+}
+
+func V3AbsPerElem(result, vec *Vector3) {
+	result[x] = abs(vec[x])
+	result[y] = abs(vec[y])
+	result[z] = abs(vec[z])
+}
+
+func V3CopySignPerElem(result, vec0, vec1 *Vector3) {
+	if vec1[x] < 0.0 {
+		result[x] = -abs(vec0[x])
+	} else {
+		result[x] = abs(vec0[x])
+	}
+	if vec1[y] < 0.0 {
+		result[y] = -abs(vec0[y])
+	} else {
+		result[y] = abs(vec0[y])
+	}
+	if vec1[z] < 0.0 {
+		result[z] = -abs(vec0[z])
+	} else {
+		result[z] = abs(vec0[z])
+	}
+}
+
+func V3MaxPerElem(result, vec0, vec1 *Vector3) {
+	result[x] = max(vec0[x], vec1[x])
+	result[y] = max(vec0[y], vec1[y])
+	result[z] = max(vec0[z], vec1[z])
+}
+
+func (v *Vector3) MaxElem() float32 {
+	var result float32
+	result = max(v[x], v[y])
+	result = max(v[z], result)
+	return result
+}
+
+func V3MinPerElem(result, vec0, vec1 *Vector3) {
+	result[x] = min(vec0[x], vec1[x])
+	result[y] = min(vec0[y], vec1[y])
+	result[z] = min(vec0[z], vec1[z])
+}
+
+func (v *Vector3) MinElem() float32 {
+	var result float32
+	result = min(v[x], v[y])
+	result = min(v[z], result)
+	return result
+}
+
+func (v *Vector3) Sum() float32 {
+	var result float32
+	result = v[x] + v[y] + v[z]
+	return result
+}
+
+func V3Dot(vec0, vec1 *Vector3) float32 {
+	result := vec0[x] * vec1[x]
+	result += vec0[y] * vec1[y]
+	result += vec0[z] * vec1[z]
+	return result
+}
+
+func (v *Vector3) Dot(vec1 *Vector3) float32 {
+	result := v[x] * vec1[x]
+	result += v[y] * vec1[y]
+	result += v[z] * vec1[z]
+	return result
+}
+
+func (v *Vector3) LengthSqr() float32 {
+	result := v[x] * v[x]
+	result += v[y] * v[y]
+	result += v[z] * v[z]
+	return result
+}
+
+func (v *Vector3) Length() float32 {
+	return sqrt(v.LengthSqr())
+}
+
+func V3Normalize(result, vec *Vector3) {
+	lenSqr := vec.LengthSqr()
+	lenInv := 1.0 / sqrt(lenSqr)
+	result[x] = vec[x] * lenInv
+	result[y] = vec[y] * lenInv
+	result[z] = vec[z] * lenInv
+}
+
+func (v *Vector3) Normalize() {
+	V3Normalize(v, v)
+}
+
+func V3Cross(result, vec0, vec1 *Vector3) {
+	result[x] = vec0[y]*vec1[z] - vec0[z]*vec1[y]
+	result[y] = vec0[z]*vec1[x] - vec0[x]*vec1[z]
+	result[z] = vec0[x]*vec1[y] - vec0[y]*vec1[x]
+}
+
+func V3Select(result, vec0, vec1 *Vector3, select1 int) {
+	if select1 != 0 {
+		result[x] = vec1[x]
+		result[y] = vec1[y]
+		result[z] = vec1[z]
+	} else {
+		result[x] = vec0[x]
+		result[y] = vec0[y]
+		result[z] = vec0[z]
+	}
+}
+
+func V3Velocity(result, start, end *Vector3, elapsedTime float32) {
+	//change in position / elapsedTime
+	V3Sub(result, start, end)
+	result[x] = result[x] / elapsedTime
+	result[y] = result[y] / elapsedTime
+	result[z] = result[z] / elapsedTime
+}
 func V3Lerp(result *Vector3, t float32, vec0, vec1 *Vector3) {
-	var tmpV3_0, tmpV3_1 Vector3
-	V3Sub(&tmpV3_0, vec1, vec0)
-	V3ScalarMul(&tmpV3_1, &tmpV3_0, t)
-	V3Add(result, vec0, &tmpV3_1)
+	V3Sub(result, vec1, vec0)
+	V3ScalarMul(result, result, t)
+	V3Add(result, vec0, result)
 }
 
 func (v *Vector3) Lerp(t float32, vecTo *Vector3) {
-	V3Lerp(v, t, v, vecTo)
+	//tmp := &Vector3{}
+	//copy(tmp, *v)
+	//V3Lerp(v, t, tmp, vecTo)
 }
 
+/*
 func V3Slerp(result *Vector3, t float32, unitVec0, unitVec1 *Vector3) {
 	var tmpV3_0, tmpV3_1 Vector3
 	var scale0, scale1 float32
@@ -78,213 +274,9 @@ func (v *Vector3) SetElem(index int, value float32) {
 	}
 }
 
-func (v *Vector3) GetElem(index int) float32 {
-	switch index {
-	case 0:
-		return v.X
-	case 1:
-		return v.Y
-	case 2:
-		return v.Z
-	}
-	return 0
-}
 
-func V3Add(result, vec0, vec1 *Vector3) {
-	result.X = vec0.X + vec1.X
-	result.Y = vec0.Y + vec1.Y
-	result.Z = vec0.Z + vec1.Z
-}
 
-func V3Sub(result, vec0, vec1 *Vector3) {
-	result.X = vec0.X - vec1.X
-	result.Y = vec0.Y - vec1.Y
-	result.Z = vec0.Z - vec1.Z
-}
 
-func V3AddP3(result, vec0 *Vector3, pnt1 *Point3) {
-	result.X = vec0.X + pnt1.X
-	result.Y = vec0.Y + pnt1.Y
-	result.Z = vec0.Z + pnt1.Z
-}
-
-func V3ScalarMul(result, vec *Vector3, scalar float32) {
-	result.X = vec.X * scalar
-	result.Y = vec.Y * scalar
-	result.Z = vec.Z * scalar
-}
-
-func V3ScalarDiv(result, vec *Vector3, scalar float32) {
-	result.X = vec.X / scalar
-	result.Y = vec.Y / scalar
-	result.Z = vec.Z / scalar
-}
-
-func V3Neg(result, vec *Vector3) {
-	result.X = -vec.X
-	result.Y = -vec.Y
-	result.Z = -vec.Z
-}
-
-func (v *Vector3) Neg() {
-	V3Neg(v, v)
-}
-
-func V3MulPerElem(result, vec0, vec1 *Vector3) {
-	result.X = vec0.X * vec1.X
-	result.Y = vec0.Y * vec1.Y
-	result.Z = vec0.Z * vec1.Z
-}
-
-func V3DivPerElem(result, vec0, vec1 *Vector3) {
-	result.X = vec0.X / vec1.X
-	result.Y = vec0.Y / vec1.Y
-	result.Z = vec0.Z / vec1.Z
-}
-
-func V3RecipPerElem(result, vec *Vector3) {
-	result.X = 1.0 / vec.X
-	result.Y = 1.0 / vec.Y
-	result.Z = 1.0 / vec.Z
-}
-
-func V3SqrtPerElem(result, vec *Vector3) {
-	result.X = sqrt(vec.X)
-	result.Y = sqrt(vec.Y)
-	result.Z = sqrt(vec.Z)
-}
-
-func V3RsqrtPerElem(result, vec *Vector3) {
-	result.X = 1.0 / sqrt(vec.X)
-	result.Y = 1.0 / sqrt(vec.Y)
-	result.Z = 1.0 / sqrt(vec.Z)
-}
-
-func V3AbsPerElem(result, vec *Vector3) {
-	result.X = abs(vec.X)
-	result.Y = abs(vec.Y)
-	result.Z = abs(vec.Z)
-}
-
-func V3CopySignPerElem(result, vec0, vec1 *Vector3) {
-	if vec1.X < 0.0 {
-		result.X = -abs(vec0.X)
-	} else {
-		result.X = abs(vec0.X)
-	}
-	if vec1.Y < 0.0 {
-		result.Y = -abs(vec0.Y)
-	} else {
-		result.Y = abs(vec0.Y)
-	}
-	if vec1.Z < 0.0 {
-		result.Z = -abs(vec0.Z)
-	} else {
-		result.Z = abs(vec0.Z)
-	}
-}
-
-func V3MaxPerElem(result, vec0, vec1 *Vector3) {
-	result.X = max(vec0.X, vec1.X)
-	result.Y = max(vec0.Y, vec1.Y)
-	result.Z = max(vec0.Z, vec1.Z)
-}
-
-func (v *Vector3) MaxElem() float32 {
-	var result float32
-	result = max(v.X, v.Y)
-	result = max(v.Z, result)
-	return result
-}
-
-func V3MinPerElem(result, vec0, vec1 *Vector3) {
-	result.X = min(vec0.X, vec1.X)
-	result.Y = min(vec0.Y, vec1.Y)
-	result.Z = min(vec0.Z, vec1.Z)
-}
-
-func (v *Vector3) MinElem() float32 {
-	var result float32
-	result = min(v.X, v.Y)
-	result = min(v.Z, result)
-	return result
-}
-
-func (v *Vector3) Sum() float32 {
-	var result float32
-	result = v.X + v.Y + v.Z
-	return result
-}
-
-func V3Dot(vec0, vec1 *Vector3) float32 {
-	result := vec0.X * vec1.X
-	result += vec0.Y * vec1.Y
-	result += vec0.Z * vec1.Z
-	return result
-}
-
-func (v *Vector3) Dot(vec1 *Vector3) float32 {
-	result := v.X * vec1.X
-	result += v.Y * vec1.Y
-	result += v.Z * vec1.Z
-	return result
-}
-
-func (v *Vector3) LengthSqr() float32 {
-	result := v.X * v.X
-	result += v.Y * v.Y
-	result += v.Z * v.Z
-	return result
-}
-
-func (v *Vector3) Length() float32 {
-	return sqrt(v.LengthSqr())
-}
-
-func V3Normalize(result, vec *Vector3) {
-	lenSqr := vec.LengthSqr()
-	lenInv := 1.0 / sqrt(lenSqr)
-	result.X = vec.X * lenInv
-	result.Y = vec.Y * lenInv
-	result.Z = vec.Z * lenInv
-}
-
-func (v *Vector3) Normalize() {
-	V3Normalize(v, v)
-}
-
-func V3Cross(result, vec0, vec1 *Vector3) {
-	tmpX := vec0.Y*vec1.Z - vec0.Z*vec1.Y
-	tmpY := vec0.Z*vec1.X - vec0.X*vec1.Z
-	tmpZ := vec0.X*vec1.Y - vec0.Y*vec1.X
-	V3MakeFromElems(result, tmpX, tmpY, tmpZ)
-}
-
-func V3Select(result, vec0, vec1 *Vector3, select1 int) {
-	if select1 != 0 {
-		result.X = vec1.X
-		result.Y = vec1.Y
-		result.Z = vec1.Z
-	} else {
-		result.X = vec0.X
-		result.Y = vec0.Y
-		result.Z = vec0.Z
-	}
-}
-
-func V3Velocity(result, start, end *Vector3, elapsedTime float32) {
-	//change in position / elapsedTime
-	V3Sub(result, start, end)
-	result.X = result.X / elapsedTime
-	result.Y = result.Y / elapsedTime
-	result.Z = result.Z / elapsedTime
-}
-
-func (v *Vector3) String() string {
-	return fmt.Sprintf("( %f %f %f )\n", v.X, v.Y, v.Z)
-}
-
-/*******/
 
 func V4Copy(result, vec *Vector4) {
 	result.X = vec.X
@@ -618,7 +610,6 @@ func (v *Vector4) String() string {
 	return fmt.Sprintf("( %f %f %f %f )", v.X, v.Y, v.Z, v.W)
 }
 
-/*******/
 
 func P3Copy(result, pnt *Point3) {
 	result.X = pnt.X
@@ -836,3 +827,5 @@ func P3Select(result, pnt0, pnt1 *Point3, select1 int) {
 		result.Z = pnt0.Z
 	}
 }
+
+*/
