@@ -89,6 +89,22 @@ func AM3Mul(result, mat0, mat1 *AMatrix) {
 	}
 }
 
+func M3Mul(mat0, mat1 *AMatrix) *AMatrix {
+	return &AMatrix{
+		((mat0[0] * mat1[(0*3)+0]) + (mat0[3] * mat1[(0*3)+1])) + (mat0[6] * mat1[(0*3)+2]),
+		((mat0[1] * mat1[(0*3)+0]) + (mat0[4] * mat1[(0*3)+1])) + (mat0[7] * mat1[(0*3)+2]),
+		((mat0[2] * mat1[(0*3)+0]) + (mat0[5] * mat1[(0*3)+1])) + (mat0[8] * mat1[(0*3)+2]),
+
+		((mat0[0] * mat1[(1*3)+0]) + (mat0[3] * mat1[(1*3)+1])) + (mat0[6] * mat1[(1*3)+2]),
+		((mat0[1] * mat1[(1*3)+0]) + (mat0[4] * mat1[(1*3)+1])) + (mat0[7] * mat1[(1*3)+2]),
+		((mat0[2] * mat1[(1*3)+0]) + (mat0[5] * mat1[(1*3)+1])) + (mat0[8] * mat1[(1*3)+2]),
+
+		((mat0[0] * mat1[(2*3)+0]) + (mat0[3] * mat1[(2*3)+1])) + (mat0[6] * mat1[(2*3)+2]),
+		((mat0[1] * mat1[(2*3)+0]) + (mat0[4] * mat1[(2*3)+1])) + (mat0[7] * mat1[(2*3)+2]),
+		((mat0[2] * mat1[(2*3)+0]) + (mat0[5] * mat1[(2*3)+1])) + (mat0[8] * mat1[(2*3)+2]),
+	}
+}
+
 //Benchmarks
 
 func BenchmarkStructM3MulV3(b *testing.B) {
@@ -155,4 +171,26 @@ func BenchmarkArrayM3Mul(b *testing.B) {
 		AM3Mul(result, mat0, mat1)
 	}
 
+}
+
+func BenchmarkArrayM3MulReturn(b *testing.B) {
+
+	mat0 := &AMatrix{23.41, 21.12, 0,
+		214.23, 213.9821, -32.02,
+		991.90, 75.123, -231.02}
+
+	mat1 := &AMatrix{23.41, 21.12, 0,
+		214.23, 213.9821, -32.02,
+		991.90, 75.123, -231.02}
+
+	for i := 0; i < b.N; i++ {
+		_ = M3Mul(mat0, mat1)
+	}
+
+}
+
+func BenchmarkVectorConversion(b *testing.B) {
+	v := &Vector3{1, 2, 3}
+	a := v.Array()
+	_ = a
 }
