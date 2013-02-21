@@ -26,7 +26,7 @@ func v3IsEqual(vector *Vector3, other *vectormath.Vector3) bool {
 
 }
 
-func TestLerp(t *testing.T) {
+func TestEquality(t *testing.T) {
 	var time float32 = 0.4
 	sStart := new(vectormath.Vector3)
 	sEnd := new(vectormath.Vector3)
@@ -38,18 +38,18 @@ func TestLerp(t *testing.T) {
 	vEnd := &Vector3{3, 3, 3}
 	vResult := &Vector3{}
 
-	V3Lerp(vResult, time, vStart, vEnd)
-	vectormath.V3Lerp(sResult, time, sStart, sEnd)
+	V3Slerp(vResult, time, vStart, vEnd)
+	vectormath.V3Slerp(sResult, time, sStart, sEnd)
 
 	if !v3IsEqual(vResult, sResult) {
-		t.Error("Lerp not equal", vStart, sResult)
+		t.Error("Slerp not equal", vStart, sResult)
 
 	}
 
-	vStart.Lerp(time, vEnd)
+	vStart.Slerp(time, vEnd)
 
 	if !v3IsEqual(vStart, sResult) {
-		t.Error("Lerp not equal", vStart, sResult)
+		t.Error("Slerp not equal", vStart, sResult)
 	}
 
 }
