@@ -81,12 +81,18 @@ func AM3MulV3(result *AVector, mat *AMatrix, vec *AVector) {
 	result.SetElems(tmpX, tmpY, tmpZ)
 }
 
-func AM3Mul(result, mat0, mat1 *AMatrix) {
+func (result *AMatrix) AM3Mul(mat0, mat1 *AMatrix) {
+
 	for c := 0; c < 3; c++ {
 		result[(c*3)+0] = ((mat0[0] * mat1[(c*3)+0]) + (mat0[3] * mat1[(c*3)+1])) + (mat0[6] * mat1[(c*3)+2])
 		result[(c*3)+1] = ((mat0[1] * mat1[(c*3)+0]) + (mat0[4] * mat1[(c*3)+1])) + (mat0[7] * mat1[(c*3)+2])
 		result[(c*3)+2] = ((mat0[2] * mat1[(c*3)+0]) + (mat0[5] * mat1[(c*3)+1])) + (mat0[8] * mat1[(c*3)+2])
 	}
+}
+
+func (result *AMatrix) AM3MulSelf(mat *AMatrix) {
+	tmp := *result
+	result.AM3Mul(&tmp, mat)
 }
 
 func M3Mul(mat0, mat1 *AMatrix) *AMatrix {
@@ -168,7 +174,23 @@ func BenchmarkArrayM3Mul(b *testing.B) {
 	result := &AMatrix{}
 
 	for i := 0; i < b.N; i++ {
-		AM3Mul(result, mat0, mat1)
+		result.AM3Mul(mat0, mat1)
+	}
+
+}
+
+func BenchmarkArrayM3MulSelf(b *testing.B) {
+
+	mat0 := &AMatrix{23.41, 21.12, 0,
+		214.23, 213.9821, -32.02,
+		991.90, 75.123, -231.02}
+
+	mat1 := &AMatrix{23.41, 21.12, 0,
+		214.23, 213.9821, -32.02,
+		991.90, 75.123, -231.02}
+
+	for i := 0; i < b.N; i++ {
+		mat0.AM3MulSelf(mat1)
 	}
 
 }
