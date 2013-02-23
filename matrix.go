@@ -6,22 +6,29 @@
 
 package vmath
 
+const (
+	m3col0 = 0
+	m3col1 = 3
+	m3col2 = 6
+)
+
 const g_PI_OVER_2 = 1.570796327
 
-/*
-func M3Copy(result *Matrix3, mat *Matrix3) {
-	V3Copy(&result.Col0, &mat.Col0)
-	V3Copy(&result.Col1, &mat.Col1)
-	V3Copy(&result.Col2, &mat.Col2)
+func (result *Matrix3) MakeFromScalar(scalar float32) {
+	result[m3col0+x] = scalar
+	result[m3col0+y] = scalar
+	result[m3col0+z] = scalar
+
+	result[m3col1+x] = scalar
+	result[m3col1+y] = scalar
+	result[m3col1+z] = scalar
+
+	result[m3col2+x] = scalar
+	result[m3col2+y] = scalar
+	result[m3col2+z] = scalar
 }
 
-func M3MakeFromScalar(result *Matrix3, scalar float32) {
-	V3MakeFromScalar(&result.Col0, scalar)
-	V3MakeFromScalar(&result.Col1, scalar)
-	V3MakeFromScalar(&result.Col2, scalar)
-}
-
-func M3MakeFromQ(result *Matrix3, unitQuat *Quat) {
+func (result *Matrix3) MakeFromQ(unitQuat *Quaternion) {
 	qx := unitQuat.X
 	qy := unitQuat.X
 	qz := unitQuat.X
@@ -38,160 +45,210 @@ func M3MakeFromQ(result *Matrix3, unitQuat *Quat) {
 	qyqw2 := qw * qy2
 	qzqz2 := qz * qz2
 	qzqw2 := qw * qz2
-	V3MakeFromElems(&result.Col0, ((1.0 - qyqy2) - qzqz2), (qxqy2 + qzqw2), (qxqz2 - qyqw2))
-	V3MakeFromElems(&result.Col1, (qxqy2 - qzqw2), ((1.0 - qxqx2) - qzqz2), (qyqz2 + qxqw2))
-	V3MakeFromElems(&result.Col2, (qxqz2 + qyqw2), (qyqz2 - qxqw2), ((1.0 - qxqx2) - qyqy2))
+
+	result[m3col0+x] = ((1.0 - qyqy2) - qzqz2)
+	result[m3col0+y] = (qxqy2 + qzqw2)
+	result[m3col0+z] = (qxqz2 - qyqw2)
+
+	result[m3col1+x] = (qxqy2 - qzqw2)
+	result[m3col1+y] = ((1.0 - qxqx2) - qzqz2)
+	result[m3col1+z] = (qyqz2 + qxqw2)
+
+	result[m3col2+x] = (qxqz2 + qyqw2)
+	result[m3col2+y] = (qyqz2 - qxqw2)
+	result[m3col2+z] = ((1.0 - qxqx2) - qyqy2))
 }
 
-func M3MakeFromCols(result *Matrix3, col0, col1, col2 *Vector3) {
-	V3Copy(&result.Col0, col0)
-	V3Copy(&result.Col1, col1)
-	V3Copy(&result.Col2, col2)
+func (result *Matrix3) MakeFromCols(col0, col1, col2 *Vector3) {
+	result.SetCol(0, col0)
+	result.SetCol(1, col1)
+	result.SetCol(2, col2)
 }
 
 func (m *Matrix3) SetCol(col int, vec *Vector3) {
 	switch col {
 	case 0:
-		V3Copy(&m.Col0, vec)
+		m[m3col0+x] = vec[x]
+		m[m3col0+y] = vec[y]
+		m[m3col0+z] = vec[z]
 	case 1:
-		V3Copy(&m.Col1, vec)
+		m[m3col1+x] = vec[x]
+		m[m3col1+y] = vec[y]
+		m[m3col1+z] = vec[z]
 	case 2:
-		V3Copy(&m.Col2, vec)
+		m[m3col2+x] = vec[x]
+		m[m3col2+y] = vec[y]
+		m[m3col2+z] = vec[z]
 	}
 }
 
 func (m *Matrix3) SetRow(row int, vec *Vector3) {
-	m.Col0.SetElem(row, vec.GetElem(0))
-	m.Col1.SetElem(row, vec.GetElem(1))
-	m.Col2.SetElem(row, vec.GetElem(2))
+	m[col0+row] = vec[x]
+	m[col1+row] = vec[y]
+	m[col2+row] = vec[z]
 }
 
 func (m *Matrix3) SetElem(col, row int, val float32) {
-	var tmpV3_0 Vector3
-	M3GetCol(&tmpV3_0, m, col)
-	tmpV3_0.SetElem(row, val)
-	m.SetCol(col, &tmpV3_0)
+	m[c*3+r] = val
 }
 
 func (m *Matrix3) GetElem(col, row int) float32 {
-	var tmpV3_0 Vector3
-	M3GetCol(&tmpV3_0, m, col)
-	return tmpV3_0.GetElem(row)
+	return m[c*3+r]
 }
 
-func M3GetCol(result *Vector3, mat *Matrix3, col int) {
+func (m *Matrix3) SetCol(vec *Vector3, col int) {
 	switch col {
 	case 0:
-		V3Copy(result, &mat.Col0)
+		copy(m[m3col0:m3col1-1], vec[:])
 	case 1:
-		V3Copy(result, &mat.Col1)
+		copy(m[m3col1:m3col2-1], vec[:])
 	case 2:
-		V3Copy(result, &mat.Col2)
+		copy(m[m3col2:], vec[:])
 	}
 }
 
-func M3GetRow(result *Vector3, mat *Matrix3, row int) {
-	x := mat.Col0.GetElem(row)
-	y := mat.Col1.GetElem(row)
-	z := mat.Col2.GetElem(row)
-	V3MakeFromElems(result, x, y, z)
+func (m *Matrix3) GetCol(result *Vector3, col int) {
+	switch col {
+	case 0:
+		copy(result[:], m[m3col0:m3col1-1])
+	case 1:
+		copy(result[:], m[m3col1:m3col2-1])
+	case 2:
+		copy(result[:], m[m3col2:)
+	}
 }
 
-func M3Transpose(result, mat *Matrix3) {
-	var tmpResult Matrix3
-	V3MakeFromElems(&tmpResult.Col0, mat.Col0.X, mat.Col1.X, mat.Col2.X)
-	V3MakeFromElems(&tmpResult.Col1, mat.Col0.Y, mat.Col1.Y, mat.Col2.Y)
-	V3MakeFromElems(&tmpResult.Col2, mat.Col0.Z, mat.Col1.Z, mat.Col2.Z)
-	M3Copy(result, &tmpResult)
+func (result *Matrix3) GetRow(result *Vector3, row int) {
+	result[x] = mat[col0+row]
+	result[y] = mat[col1+row]
+	result[z] = mat[col2+row]
 }
 
-func (m *Matrix3) Transpose() {
-	M3Transpose(m, m)
+func (result *Matrix3) Transpose(mat *Matrix3) {
+	result[m3col0+x] = mat[col0+x]
+	result[m3col0+y] = mat[col1+x]
+	result[m3col0+z] = mat[col2+x]
+
+	result[m3col1+x] = mat[col0+y]
+	result[m3col1+y] = mat[col1+y]
+	result[m3col1+z] = mat[col2+y]
+
+	result[m3col2+x] = mat[col0+z]
+	result[m3col2+y] = mat[col1+z]
+	result[m3col2+z] = mat[col2+z]
+
 }
 
-func M3Inverse(result, mat *Matrix3) {
+func (m *Matrix3) TransposeSelf() {
+	tmp := *m
+	m.Transpose(tmp)
+}
+
+func (result *Matrix3) Inverse(mat *Matrix3) {
+	var col0, col1, col2 Vector3
 	var tmp0, tmp1, tmp2 Vector3
-	V3Cross(&tmp0, &mat.Col1, &mat.Col2)
-	V3Cross(&tmp1, &mat.Col2, &mat.Col0)
-	V3Cross(&tmp2, &mat.Col0, &mat.Col1)
-	detinv := 1.0 / V3Dot(&mat.Col2, &tmp2)
-	V3MakeFromElems(&result.Col0, tmp0.X*detinv, tmp1.X*detinv, tmp2.X*detinv)
-	V3MakeFromElems(&result.Col1, tmp0.Y*detinv, tmp1.Y*detinv, tmp2.Y*detinv)
-	V3MakeFromElems(&result.Col2, tmp0.Z*detinv, tmp1.Z*detinv, tmp2.Z*detinv)
+
+	mat.GetCol(col0, 0)
+	mat.GetCol(col1, 1)
+	mat.GetCol(col2, 2)
+
+	tmp0.Cross(col1, col2)
+	tmp1.Cross(col2, col0)
+	tmp2.Cross(col0, col1)
+
+	detinv := 1.0 / col2.Dot(tmp2)
+
+	result[col0+x] = tmp0[x]*detinv
+	result[col0+y] = tmp1[x]*detinv
+	result[col0+z] = tmp2[x]*detinv
+
+	result[col1+x] = tmp0[y]*detinv
+	result[col1+y] = tmp1[y]*detinv
+	result[col1+z] = tmp2[y]*detinv
+
+	result[col1+x] = tmp0[z]*detinv
+	result[col1+y] = tmp1[z]*detinv
+	result[col1+z] = tmp2[z]*detinv
+
 }
 
-func (m *Matrix3) Invert() {
-	M3Inverse(m, m)
+func (m *Matrix3) InvertSelf() {
+	m.Inverse(m, m)
 }
 
 func (m *Matrix3) Determinant() float32 {
-	var tmpV3_0 Vector3
-	V3Cross(&tmpV3_0, &m.Col0, &m.Col1)
-	return V3Dot(&m.Col2, &tmpV3_0)
+	var col0, col1, col2, tmp Vector3
+	m.GetCol(col0, 0)
+	m.GetCol(col1, 0)
+	m.GetCol(col2, 0)
+
+	tmp.Cross(col0, col1)
+
+	return col2.Dot(tmp)
 }
 
-func M3Add(result, mat0, mat1 *Matrix3) {
+func (result *Matrix3) Add(mat0, mat1 *Matrix3) {
 	V3Add(&result.Col0, &mat0.Col0, &mat1.Col0)
 	V3Add(&result.Col1, &mat0.Col1, &mat1.Col1)
 	V3Add(&result.Col2, &mat0.Col2, &mat1.Col2)
 }
 
-func M3Sub(result, mat0, mat1 *Matrix3) {
+func (result *Matrix3) Sub(result, mat0, mat1 *Matrix3) {
 	V3Sub(&result.Col0, &mat0.Col0, &mat1.Col0)
 	V3Sub(&result.Col1, &mat0.Col1, &mat1.Col1)
 	V3Sub(&result.Col2, &mat0.Col2, &mat1.Col2)
 }
 
-func M3Neg(result, mat *Matrix3) {
+func (result *Matrix3) Neg(result, mat *Matrix3) {
 	V3Neg(&result.Col0, &mat.Col0)
 	V3Neg(&result.Col1, &mat.Col1)
 	V3Neg(&result.Col2, &mat.Col2)
 }
 
 func (m *Matrix3) Neg() {
-	M3Neg(m, m)
+	(result *Matrix3) Neg(m, m)
 }
 
-func M3AbsPerElem(result, mat *Matrix3) {
+func (result *Matrix3) AbsPerElem(result, mat *Matrix3) {
 	V3AbsPerElem(&result.Col0, &mat.Col0)
 	V3AbsPerElem(&result.Col1, &mat.Col1)
 	V3AbsPerElem(&result.Col2, &mat.Col2)
 }
 
-func M3ScalarMul(result, mat *Matrix3, scalar float32) {
+func (result *Matrix3) ScalarMul(result, mat *Matrix3, scalar float32) {
 	V3ScalarMul(&result.Col0, &mat.Col0, scalar)
 	V3ScalarMul(&result.Col1, &mat.Col1, scalar)
 	V3ScalarMul(&result.Col2, &mat.Col2, scalar)
 }
 
-func M3MulV3(result *Vector3, mat *Matrix3, vec *Vector3) {
+func (result *Matrix3) MulV3(result *Vector3, mat *Matrix3, vec *Vector3) {
 	tmpX := ((mat.Col0.X * vec.X) + (mat.Col1.X * vec.Y)) + (mat.Col2.X * vec.Z)
 	tmpY := ((mat.Col0.Y * vec.X) + (mat.Col1.Y * vec.Y)) + (mat.Col2.Y * vec.Z)
 	tmpZ := ((mat.Col0.Z * vec.X) + (mat.Col1.Z * vec.Y)) + (mat.Col2.Z * vec.Z)
 	V3MakeFromElems(result, tmpX, tmpY, tmpZ)
 }
 
-func M3Mul(result, mat0, mat1 *Matrix3) {
+func (result *Matrix3) Mul(result, mat0, mat1 *Matrix3) {
 	var tmpResult Matrix3
-	M3MulV3(&tmpResult.Col0, mat0, &mat1.Col0)
-	M3MulV3(&tmpResult.Col1, mat0, &mat1.Col1)
-	M3MulV3(&tmpResult.Col2, mat0, &mat1.Col2)
-	M3Copy(result, &tmpResult)
+	(result *Matrix3) MulV3(&tmpResult.Col0, mat0, &mat1.Col0)
+	(result *Matrix3) MulV3(&tmpResult.Col1, mat0, &mat1.Col1)
+	(result *Matrix3) MulV3(&tmpResult.Col2, mat0, &mat1.Col2)
+	(result *Matrix3) Copy(result, &tmpResult)
 }
 
-func M3MulPerElem(result, mat0, mat1 *Matrix3) {
+func (result *Matrix3) MulPerElem(result, mat0, mat1 *Matrix3) {
 	V3MulPerElem(&result.Col0, &mat0.Col0, &mat1.Col0)
 	V3MulPerElem(&result.Col1, &mat0.Col1, &mat1.Col1)
 	V3MulPerElem(&result.Col2, &mat0.Col2, &mat1.Col2)
 }
 
-func M3MakeIdentity(result *Matrix3) {
+func (result *Matrix3) MakeIdentity(result *Matrix3) {
 	V3MakeXAxis(&result.Col0)
 	V3MakeYAxis(&result.Col1)
 	V3MakeZAxis(&result.Col2)
 }
 
-func M3MakeRotationX(result *Matrix3, radians float32) {
+func (result *Matrix3) MakeRotationX(result *Matrix3, radians float32) {
 	s := sin(radians)
 	c := cos(radians)
 	V3MakeXAxis(&result.Col0)
@@ -199,7 +256,7 @@ func M3MakeRotationX(result *Matrix3, radians float32) {
 	V3MakeFromElems(&result.Col2, 0.0, -s, c)
 }
 
-func M3MakeRotationY(result *Matrix3, radians float32) {
+func (result *Matrix3) MakeRotationY(result *Matrix3, radians float32) {
 	s := sin(radians)
 	c := cos(radians)
 	V3MakeFromElems(&result.Col0, c, 0.0, -s)
@@ -207,7 +264,7 @@ func M3MakeRotationY(result *Matrix3, radians float32) {
 	V3MakeFromElems(&result.Col2, s, 0.0, c)
 }
 
-func M3MakeRotationZ(result *Matrix3, radians float32) {
+func (result *Matrix3) MakeRotationZ(result *Matrix3, radians float32) {
 	s := sin(radians)
 	c := cos(radians)
 	V3MakeFromElems(&result.Col0, c, s, 0.0)
@@ -215,7 +272,7 @@ func M3MakeRotationZ(result *Matrix3, radians float32) {
 	V3MakeZAxis(&result.Col2)
 }
 
-func M3MakeRotationZYX(result *Matrix3, radiansXYZ *Vector3) {
+func (result *Matrix3) MakeRotationZYX(result *Matrix3, radiansXYZ *Vector3) {
 	sX := sin(radiansXYZ.X)
 	cX := cos(radiansXYZ.X)
 	sY := sin(radiansXYZ.Y)
@@ -229,7 +286,7 @@ func M3MakeRotationZYX(result *Matrix3, radiansXYZ *Vector3) {
 	V3MakeFromElems(&result.Col2, ((tmp0 * cX) + (sZ * sX)), ((tmp1 * cX) - (cZ * sX)), (cY * cX))
 }
 
-func M3MakeRotationAxis(result *Matrix3, radians float32, unitVec *Vector3) {
+func (result *Matrix3) MakeRotationAxis(result *Matrix3, radians float32, unitVec *Vector3) {
 	s := sin(radians)
 	c := cos(radians)
 	x := unitVec.X
@@ -244,41 +301,41 @@ func M3MakeRotationAxis(result *Matrix3, radians float32, unitVec *Vector3) {
 	V3MakeFromElems(&result.Col2, ((zx * oneMinusC) + (y * s)), ((yz * oneMinusC) - (x * s)), (((z * z) * oneMinusC) + c))
 }
 
-func M3MakeRotationQ(result *Matrix3, unitQuat *Quat) {
-	M3MakeFromQ(result, unitQuat)
+func (result *Matrix3) MakeRotationQ(result *Matrix3, unitQuat *Quaternion) {
+	(result *Matrix3) MakeFromQ(result, unitQuat)
 }
 
-func M3MakeScale(result *Matrix3, scaleVec *Vector3) {
+func (result *Matrix3) MakeScale(result *Matrix3, scaleVec *Vector3) {
 	V3MakeFromElems(&result.Col0, scaleVec.X, 0.0, 0.0)
 	V3MakeFromElems(&result.Col1, 0.0, scaleVec.Y, 0.0)
 	V3MakeFromElems(&result.Col2, 0.0, 0.0, scaleVec.Z)
 }
 
-func M3AppendScale(result, mat *Matrix3, scaleVec *Vector3) {
+func (result *Matrix3) AppendScale(result, mat *Matrix3, scaleVec *Vector3) {
 	V3ScalarMul(&result.Col0, &mat.Col0, scaleVec.X)
 	V3ScalarMul(&result.Col1, &mat.Col1, scaleVec.Y)
 	V3ScalarMul(&result.Col2, &mat.Col2, scaleVec.Z)
 }
 
-func M3PrependScale(result *Matrix3, scaleVec *Vector3, mat *Matrix3) {
+func (result *Matrix3) PrependScale(result *Matrix3, scaleVec *Vector3, mat *Matrix3) {
 	V3MulPerElem(&result.Col0, &mat.Col0, scaleVec)
 	V3MulPerElem(&result.Col1, &mat.Col1, scaleVec)
 	V3MulPerElem(&result.Col2, &mat.Col2, scaleVec)
 }
 
-func M3Select(result, mat0, mat1 *Matrix3, select1 int) {
+func (result *Matrix3) Select(result, mat0, mat1 *Matrix3, select1 int) {
 	V3Select(&result.Col0, &mat0.Col0, &mat1.Col0, select1)
 	V3Select(&result.Col1, &mat0.Col1, &mat1.Col1, select1)
 	V3Select(&result.Col2, &mat0.Col2, &mat1.Col2, select1)
 }
 
-func (m *Matrix3) String() string {
-	var tmp Matrix3
-	M3Transpose(&tmp, m)
-	return tmp.Col0.String() + tmp.Col1.String() + tmp.Col2.String()
-}
-
-
+//Matrix 4
+const (
+	m4col0 = 0
+	m4col1 = 4
+	m4col2 = 8
+	m4Col3 = 12
+)
 func M4Copy(result, mat *Matrix4) {
 	V4Copy(&result.Col0, &mat.Col0)
 	V4Copy(&result.Col1, &mat.Col1)
@@ -314,7 +371,7 @@ func M4MakeFromM3V3(result *Matrix4, mat *Matrix3, translateVec *Vector3) {
 	V4MakeFromV3Scalar(&result.Col3, translateVec, 1.0)
 }
 
-func M4MakeFromQV3(result *Matrix4, unitQuat *Quat, translateVec *Vector3) {
+func M4MakeFromQV3(result *Matrix4, unitQuat *Quaternion, translateVec *Vector3) {
 	var mat *Matrix3
 	M3MakeFromQ(mat, unitQuat)
 	V4MakeFromV3Scalar(&result.Col0, &mat.Col0, 0.0)
@@ -705,7 +762,7 @@ func M4MakeRotationAxis(result *Matrix4, radians float32, unitVec *Vector3) {
 	V4MakeWAxis(&result.Col3)
 }
 
-func M4MakeRotationQ(result *Matrix4, unitQuat *Quat) {
+func M4MakeRotationQ(result *Matrix4, unitQuat *Quaternion) {
 	var tmpT3_0 Transform3
 	T3MakeRotationQ(&tmpT3_0, unitQuat)
 	M4MakeFromT3(result, &tmpT3_0)
@@ -835,7 +892,7 @@ func T3MakeFromM3V3(result *Transform3, tfrm *Matrix3, translateVec *Vector3) {
 	result.SetTranslation(translateVec)
 }
 
-func T3MakeFromQV3(result *Transform3, unitQuat *Quat, translateVec *Vector3) {
+func T3MakeFromQV3(result *Transform3, unitQuat *Quaternion, translateVec *Vector3) {
 	var tmpM3_0 Matrix3
 	M3MakeFromQ(&tmpM3_0, unitQuat)
 	result.SetUpper3x3(&tmpM3_0)
@@ -1061,7 +1118,7 @@ func T3MakeRotationAxis(result *Transform3, radians float32, unitVec *Vector3) {
 	T3MakeFromM3V3(result, &tmpM3_0, &tmpV3_0)
 }
 
-func T3MakeRotationQ(result *Transform3, unitQuat *Quat) {
+func T3MakeRotationQ(result *Transform3, unitQuat *Quaternion) {
 	var tmpM3_0 Matrix3
 	var tmpV3_0 Vector3
 	M3MakeFromQ(&tmpM3_0, unitQuat)
@@ -1113,7 +1170,7 @@ func (t *Transform3) String() string {
 }
 
 
-func QMakeFromM3(result *Quat, tfrm *Matrix3) {
+func QMakeFromM3(result *Quaternion, tfrm *Matrix3) {
 	xx := tfrm.Col0.X
 	yx := tfrm.Col0.Y
 	zx := tfrm.Col0.Z
