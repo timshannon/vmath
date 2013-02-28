@@ -97,7 +97,7 @@ func (result *Vector3) Neg(vec *Vector3) {
 	result[z] = -vec[z]
 }
 
-func (result *Vector3) NegSelf(vec *Vector3) {
+func (result *Vector3) NegSelf() {
 	result.Neg(result)
 }
 
