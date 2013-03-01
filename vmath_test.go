@@ -10,15 +10,15 @@ import (
 )
 
 func v3IsEqual(vector *Vector3, other *vectormath.Vector3) bool {
-	if vector[0] != other.X {
+	if vector[0] != other.X() {
 		return false
 	}
 
-	if vector[1] != other.Y {
+	if vector[1] != other.Y() {
 		return false
 	}
 
-	if vector[2] != other.Z {
+	if vector[2] != other.Z() {
 		return false
 	}
 
