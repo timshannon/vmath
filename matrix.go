@@ -190,7 +190,7 @@ func (result *Matrix3) Add(mat0, mat1 *Matrix3) {
 	result[m3col2+z] = mat0[m3col2+z] + mat1[m3col2+z]
 }
 
-func (result *Matrix3) AddSelf(mat *Matrix3) {
+func (result *Matrix3) AddToSelf(mat *Matrix3) {
 	result.Add(result, mat)
 }
 
@@ -208,7 +208,7 @@ func (result *Matrix3) Sub(mat0, mat1 *Matrix3) {
 	result[m3col2+z] = mat0[m3col2+z] - mat1[m3col2+z]
 }
 
-func (result *Matrix3) SubSelf(mat *Matrix3) {
+func (result *Matrix3) SubFromSelf(mat *Matrix3) {
 	result.Sub(result, mat)
 }
 
@@ -533,18 +533,22 @@ func (result *Matrix4) MakeFromScalar(scalar float32) {
 	result[m4col0+x] = scalar
 	result[m4col0+y] = scalar
 	result[m4col0+z] = scalar
+	result[m4col0+w] = scalar
 
 	result[m4col1+x] = scalar
 	result[m4col1+y] = scalar
 	result[m4col1+z] = scalar
+	result[m4col1+w] = scalar
 
 	result[m4col2+x] = scalar
 	result[m4col2+y] = scalar
 	result[m4col2+z] = scalar
+	result[m4col2+w] = scalar
 
 	result[m4col3+x] = scalar
 	result[m4col3+y] = scalar
 	result[m4col3+z] = scalar
+	result[m4col3+w] = scalar
 
 }
 
@@ -774,63 +778,79 @@ func (result *Matrix4) InverseSelf() {
 	result.Inverse(result)
 }
 
-/*
 func (result *Matrix4) AffineInverse(mat *Matrix4) {
-	var affineMat, tmpT3_0 Transform3
-	var tmpV3_0, tmpV3_1, tmpV3_2, tmpV3_3 Vector3
-	V4GetXYZ(&tmpV3_0, &mat.Col0)
-	V4GetXYZ(&tmpV3_1, &mat.Col1)
-	V4GetXYZ(&tmpV3_2, &mat.Col2)
-	V4GetXYZ(&tmpV3_3, &mat.Col3)
-	affineMat.SetCol(0, &tmpV3_0)
-	affineMat.SetCol(1, &tmpV3_1)
-	affineMat.SetCol(2, &tmpV3_2)
-	affineMat.SetCol(3, &tmpV3_3)
-	T3Inverse(&tmpT3_0, &affineMat)
-	M4MakeFromT3(result, &tmpT3_0)
+	var affineMat Transform3
+
+	affineMat[t3col0+x] = mat[m4col0+x]
+	affineMat[t3col0+y] = mat[m4col0+y]
+	affineMat[t3col0+z] = mat[m4col0+z]
+
+	affineMat[t3col1+x] = mat[m4col1+x]
+	affineMat[t3col1+y] = mat[m4col1+y]
+	affineMat[t3col1+z] = mat[m4col1+z]
+
+	affineMat[t3col2+x] = mat[m4col2+x]
+	affineMat[t3col2+y] = mat[m4col2+y]
+	affineMat[t3col2+z] = mat[m4col2+z]
+
+	affineMat[t3col3+x] = mat[m4col3+x]
+	affineMat[t3col3+y] = mat[m4col3+y]
+	affineMat[t3col3+z] = mat[m4col3+z]
+
+	affineMat.InverseSelf()
+
+	result.MakeFromT3(&affineMat)
 }
 
-
-func (m *Matrix4) AffineInvert() {
-	M4AffineInverse(m, m)
+func (result *Matrix4) AffineInverseSelf() {
+	result.AffineInverse(result)
 }
 
-func (result *Matrix4) OrthoInverse(result, mat *Matrix4) {
-	var affineMat, tmpT3_0 Transform3
-	var tmpV3_0, tmpV3_1, tmpV3_2, tmpV3_3 Vector3
-	V4GetXYZ(&tmpV3_0, &mat.Col0)
-	V4GetXYZ(&tmpV3_1, &mat.Col1)
-	V4GetXYZ(&tmpV3_2, &mat.Col2)
-	V4GetXYZ(&tmpV3_3, &mat.Col3)
-	affineMat.SetCol(0, &tmpV3_0)
-	affineMat.SetCol(1, &tmpV3_1)
-	affineMat.SetCol(2, &tmpV3_2)
-	affineMat.SetCol(3, &tmpV3_3)
-	T3OrthoInverse(&tmpT3_0, &affineMat)
-	M4MakeFromT3(result, &tmpT3_0)
+func (result *Matrix4) OrthoInverse(mat *Matrix4) {
+	var affineMat Transform3
+
+	affineMat[t3col0+x] = mat[m4col0+x]
+	affineMat[t3col0+y] = mat[m4col0+y]
+	affineMat[t3col0+z] = mat[m4col0+z]
+
+	affineMat[t3col1+x] = mat[m4col1+x]
+	affineMat[t3col1+y] = mat[m4col1+y]
+	affineMat[t3col1+z] = mat[m4col1+z]
+
+	affineMat[t3col2+x] = mat[m4col2+x]
+	affineMat[t3col2+y] = mat[m4col2+y]
+	affineMat[t3col2+z] = mat[m4col2+z]
+
+	affineMat[t3col3+x] = mat[m4col3+x]
+	affineMat[t3col3+y] = mat[m4col3+y]
+	affineMat[t3col3+z] = mat[m4col3+z]
+
+	affineMat.OrthoInverseSelf()
+
+	result.MakeFromT3(&affineMat)
 }
 
-func (m *Matrix4) OrthoInvert() {
-	M4OrthoInverse(m, m)
+func (result *Matrix4) OrthoInverseSelf() {
+	result.OrthoInverse(result)
 }
 
 func (m *Matrix4) Determinant() float32 {
-	mA := m.Col0.X
-	mB := m.Col0.Y
-	mC := m.Col0.Z
-	mD := m.Col0.W
-	mE := m.Col1.X
-	mF := m.Col1.Y
-	mG := m.Col1.Z
-	mH := m.Col1.W
-	mI := m.Col2.X
-	mJ := m.Col2.Y
-	mK := m.Col2.Z
-	mL := m.Col2.W
-	mM := m.Col3.X
-	mN := m.Col3.Y
-	mO := m.Col3.Z
-	mP := m.Col3.W
+	mA := m[m4col0+x]
+	mB := m[m4col0+y]
+	mC := m[m4col0+z]
+	mD := m[m4col0+w]
+	mE := m[m4col1+x]
+	mF := m[m4col1+y]
+	mG := m[m4col1+z]
+	mH := m[m4col1+w]
+	mI := m[m4col2+x]
+	mJ := m[m4col2+y]
+	mK := m[m4col2+z]
+	mL := m[m4col2+w]
+	mM := m[m4col3+x]
+	mN := m[m4col3+y]
+	mO := m[m4col3+z]
+	mP := m[m4col3+w]
 	tmp0 := ((mK * mD) - (mC * mL))
 	tmp1 := ((mO * mH) - (mG * mP))
 	tmp2 := ((mB * mK) - (mJ * mC))
@@ -844,87 +864,228 @@ func (m *Matrix4) Determinant() float32 {
 	return ((((mA * dx) + (mE * dy)) + (mI * dz)) + (mM * dw))
 }
 
-func (result *Matrix4) Add(result, mat0, mat1 *Matrix4) {
-	V4Add(&result.Col0, &mat0.Col0, &mat1.Col0)
-	V4Add(&result.Col1, &mat0.Col1, &mat1.Col1)
-	V4Add(&result.Col2, &mat0.Col2, &mat1.Col2)
-	V4Add(&result.Col3, &mat0.Col3, &mat1.Col3)
+func (result *Matrix4) Add(mat0, mat1 *Matrix4) {
+	result[m4col0+x] = mat0[m4col0+x] + mat1[m4col0+x]
+	result[m4col0+y] = mat0[m4col0+y] + mat1[m4col0+y]
+	result[m4col0+z] = mat0[m4col0+z] + mat1[m4col0+z]
+	result[m4col0+w] = mat0[m4col0+w] + mat1[m4col0+w]
+
+	result[m4col1+x] = mat0[m4col1+x] + mat1[m4col1+x]
+	result[m4col1+y] = mat0[m4col1+y] + mat1[m4col1+y]
+	result[m4col1+z] = mat0[m4col1+z] + mat1[m4col1+z]
+	result[m4col1+w] = mat0[m4col1+w] + mat1[m4col1+w]
+
+	result[m4col2+x] = mat0[m4col2+x] + mat1[m4col2+x]
+	result[m4col2+y] = mat0[m4col2+y] + mat1[m4col2+y]
+	result[m4col2+z] = mat0[m4col2+z] + mat1[m4col2+z]
+	result[m4col2+w] = mat0[m4col2+w] + mat1[m4col2+w]
+
+	result[m4col3+x] = mat0[m4col3+x] + mat1[m4col3+x]
+	result[m4col3+y] = mat0[m4col3+y] + mat1[m4col3+y]
+	result[m4col3+z] = mat0[m4col3+z] + mat1[m4col3+z]
+	result[m4col3+w] = mat0[m4col3+w] + mat1[m4col3+w]
 }
 
-func (result *Matrix4) Sub(result, mat0, mat1 *Matrix4) {
-	V4Sub(&result.Col0, &mat0.Col0, &mat1.Col0)
-	V4Sub(&result.Col1, &mat0.Col1, &mat1.Col1)
-	V4Sub(&result.Col2, &mat0.Col2, &mat1.Col2)
-	V4Sub(&result.Col3, &mat0.Col3, &mat1.Col3)
+func (result *Matrix4) AddToSelf(mat *Matrix4) {
+	result.Add(result, mat)
 }
 
-func (result *Matrix4) Neg(result, mat *Matrix4) {
-	V4Neg(&result.Col0, &mat.Col0)
-	V4Neg(&result.Col1, &mat.Col1)
-	V4Neg(&result.Col2, &mat.Col2)
-	V4Neg(&result.Col3, &mat.Col3)
+func (result *Matrix4) Sub(mat0, mat1 *Matrix4) {
+	result[m4col0+x] = mat0[m4col0+x] - mat1[m4col0+x]
+	result[m4col0+y] = mat0[m4col0+y] - mat1[m4col0+y]
+	result[m4col0+z] = mat0[m4col0+z] - mat1[m4col0+z]
+	result[m4col0+w] = mat0[m4col0+w] - mat1[m4col0+w]
+
+	result[m4col1+x] = mat0[m4col1+x] - mat1[m4col1+x]
+	result[m4col1+y] = mat0[m4col1+y] - mat1[m4col1+y]
+	result[m4col1+z] = mat0[m4col1+z] - mat1[m4col1+z]
+	result[m4col1+w] = mat0[m4col1+w] - mat1[m4col1+w]
+
+	result[m4col2+x] = mat0[m4col2+x] - mat1[m4col2+x]
+	result[m4col2+y] = mat0[m4col2+y] - mat1[m4col2+y]
+	result[m4col2+z] = mat0[m4col2+z] - mat1[m4col2+z]
+	result[m4col2+w] = mat0[m4col2+w] - mat1[m4col2+w]
+
+	result[m4col3+x] = mat0[m4col3+x] - mat1[m4col3+x]
+	result[m4col3+y] = mat0[m4col3+y] - mat1[m4col3+y]
+	result[m4col3+z] = mat0[m4col3+z] - mat1[m4col3+z]
+	result[m4col3+w] = mat0[m4col3+w] - mat1[m4col3+w]
 }
 
-func (m *Matrix4) Neg() {
-	M4Neg(m, m)
+func (result *Matrix4) SubFromSelf(mat *Matrix4) {
+	result.Sub(result, mat)
 }
 
-func (result *Matrix4) AbsPerElem(result, mat *Matrix4) {
-	V4AbsPerElem(&result.Col0, &mat.Col0)
-	V4AbsPerElem(&result.Col1, &mat.Col1)
-	V4AbsPerElem(&result.Col2, &mat.Col2)
-	V4AbsPerElem(&result.Col3, &mat.Col3)
+func (result *Matrix4) Neg(mat *Matrix4) {
+	result[m4col0+x] = -mat[m4col0+x]
+	result[m4col0+y] = -mat[m4col0+y]
+	result[m4col0+z] = -mat[m4col0+z]
+	result[m4col0+w] = -mat[m4col0+w]
+
+	result[m4col1+x] = -mat[m4col1+x]
+	result[m4col1+y] = -mat[m4col1+y]
+	result[m4col1+z] = -mat[m4col1+z]
+	result[m4col1+w] = -mat[m4col1+w]
+
+	result[m4col2+x] = -mat[m4col2+x]
+	result[m4col2+y] = -mat[m4col2+y]
+	result[m4col2+z] = -mat[m4col2+z]
+	result[m4col2+w] = -mat[m4col2+w]
+
+	result[m4col3+x] = -mat[m4col3+x]
+	result[m4col3+y] = -mat[m4col3+y]
+	result[m4col3+z] = -mat[m4col3+z]
+	result[m4col3+w] = -mat[m4col3+w]
+
 }
 
-func (result *Matrix4) ScalarMul(result, mat *Matrix4, scalar float32) {
-	V4ScalarMul(&result.Col0, &mat.Col0, scalar)
-	V4ScalarMul(&result.Col1, &mat.Col1, scalar)
-	V4ScalarMul(&result.Col2, &mat.Col2, scalar)
-	V4ScalarMul(&result.Col3, &mat.Col3, scalar)
+func (m *Matrix4) NegSelf() {
+	m.Neg(m)
 }
 
-func (result *Matrix4) MulV4(result *Vector4, mat *Matrix4, vec *Vector4) {
-	tmpX := (((mat.Col0.X * vec.X) + (mat.Col1.X * vec.Y)) + (mat.Col2.X * vec.Z)) + (mat.Col3.X * vec.W)
-	tmpY := (((mat.Col0.Y * vec.X) + (mat.Col1.Y * vec.Y)) + (mat.Col2.Y * vec.Z)) + (mat.Col3.Y * vec.W)
-	tmpZ := (((mat.Col0.Z * vec.X) + (mat.Col1.Z * vec.Y)) + (mat.Col2.Z * vec.Z)) + (mat.Col3.Z * vec.W)
-	tmpW := (((mat.Col0.W * vec.X) + (mat.Col1.W * vec.Y)) + (mat.Col2.W * vec.Z)) + (mat.Col3.W * vec.W)
-	V4MakeFromElems(result, tmpX, tmpY, tmpZ, tmpW)
+func (result *Matrix4) AbsPerElem(mat *Matrix4) {
+	result[m4col0+x] = abs(mat[m4col0+x])
+	result[m4col0+y] = abs(mat[m4col0+y])
+	result[m4col0+z] = abs(mat[m4col0+z])
+	result[m4col0+w] = abs(mat[m4col0+w])
+
+	result[m4col1+x] = abs(mat[m4col1+x])
+	result[m4col1+y] = abs(mat[m4col1+y])
+	result[m4col1+z] = abs(mat[m4col1+z])
+	result[m4col1+w] = abs(mat[m4col1+w])
+
+	result[m4col2+x] = abs(mat[m4col2+x])
+	result[m4col2+y] = abs(mat[m4col2+y])
+	result[m4col2+z] = abs(mat[m4col2+z])
+	result[m4col2+w] = abs(mat[m4col2+w])
+
+	result[m4col3+x] = abs(mat[m4col3+x])
+	result[m4col3+y] = abs(mat[m4col3+y])
+	result[m4col3+z] = abs(mat[m4col3+z])
+	result[m4col3+w] = abs(mat[m4col3+w])
 }
 
-func (result *Matrix4) MulV3(result *Vector4, mat *Matrix4, vec *Vector3) {
-	result.X = ((mat.Col0.X * vec.X) + (mat.Col1.X * vec.Y)) + (mat.Col2.X * vec.Z)
-	result.Y = ((mat.Col0.Y * vec.X) + (mat.Col1.Y * vec.Y)) + (mat.Col2.Y * vec.Z)
-	result.Z = ((mat.Col0.Z * vec.X) + (mat.Col1.Z * vec.Y)) + (mat.Col2.Z * vec.Z)
-	result.W = ((mat.Col0.W * vec.X) + (mat.Col1.W * vec.Y)) + (mat.Col2.W * vec.Z)
+func (result *Matrix4) AbsPerElemSelf() {
+	result.AbsPerElem(result)
 }
 
-func (result *Matrix4) MulP3(result *Vector4, mat *Matrix4, pnt *Point3) {
-	result.X = (((mat.Col0.X * pnt.X) + (mat.Col1.X * pnt.Y)) + (mat.Col2.X * pnt.Z)) + mat.Col3.X
-	result.Y = (((mat.Col0.Y * pnt.X) + (mat.Col1.Y * pnt.Y)) + (mat.Col2.Y * pnt.Z)) + mat.Col3.Y
-	result.Z = (((mat.Col0.Z * pnt.X) + (mat.Col1.Z * pnt.Y)) + (mat.Col2.Z * pnt.Z)) + mat.Col3.Z
-	result.W = (((mat.Col0.W * pnt.X) + (mat.Col1.W * pnt.Y)) + (mat.Col2.W * pnt.Z)) + mat.Col3.W
+func (result *Matrix4) ScalarMul(mat *Matrix4, scalar float32) {
+	result[m4col0+x] = mat[m4col0+x] * scalar
+	result[m4col0+y] = mat[m4col0+y] * scalar
+	result[m4col0+z] = mat[m4col0+z] * scalar
+	result[m4col0+w] = mat[m4col0+w] * scalar
+
+	result[m4col1+x] = mat[m4col1+x] * scalar
+	result[m4col1+y] = mat[m4col1+y] * scalar
+	result[m4col1+z] = mat[m4col1+z] * scalar
+	result[m4col1+w] = mat[m4col1+w] * scalar
+
+	result[m4col2+x] = mat[m4col2+x] * scalar
+	result[m4col2+y] = mat[m4col2+y] * scalar
+	result[m4col2+z] = mat[m4col2+z] * scalar
+	result[m4col2+w] = mat[m4col2+w] * scalar
+
+	result[m4col3+x] = mat[m4col3+x] * scalar
+	result[m4col3+y] = mat[m4col3+y] * scalar
+	result[m4col3+z] = mat[m4col3+z] * scalar
+	result[m4col3+w] = mat[m4col3+w] * scalar
 }
 
-func (result *Matrix4) Mul(result, mat0, mat1 *Matrix4) {
-	var tmpResult Matrix4
-	M4MulV4(&tmpResult.Col0, mat0, &mat1.Col0)
-	M4MulV4(&tmpResult.Col1, mat0, &mat1.Col1)
-	M4MulV4(&tmpResult.Col2, mat0, &mat1.Col2)
-	M4MulV4(&tmpResult.Col3, mat0, &mat1.Col3)
-	M4Copy(result, &tmpResult)
+func (result *Matrix4) ScalarMulSelf(scalar float32) {
+	result.ScalarMul(result, scalar)
 }
 
-func (result *Matrix4) MulT3(result, mat *Matrix4, tfrm1 *Transform3) {
-	var tmpResult Matrix4
-	var tmpP3_0 Point3
-	M4MulV3(&tmpResult.Col0, mat, &tfrm1.Col0)
-	M4MulV3(&tmpResult.Col1, mat, &tfrm1.Col1)
-	M4MulV3(&tmpResult.Col2, mat, &tfrm1.Col2)
-	P3MakeFromV3(&tmpP3_0, &tfrm1.Col3)
-	M4MulP3(&tmpResult.Col3, mat, &tmpP3_0)
-	M4Copy(result, &tmpResult)
+func (result *Vector4) MulM4(vec *Vector4, mat *Matrix4) {
+	result[x] = (((mat[m4col0+x] * vec[x]) + (mat[m4col1+x] * vec[y])) + (mat[m4col2+x] * vec[z])) + (mat[m4col3+x] * vec[w])
+	result[y] = (((mat[m4col0+y] * vec[x]) + (mat[m4col1+y] * vec[y])) + (mat[m4col2+y] * vec[z])) + (mat[m4col3+y] * vec[w])
+	result[z] = (((mat[m4col0+z] * vec[x]) + (mat[m4col1+z] * vec[y])) + (mat[m4col2+z] * vec[z])) + (mat[m4col3+z] * vec[w])
+	result[w] = (((mat[m4col0+w] * vec[x]) + (mat[m4col1+w] * vec[y])) + (mat[m4col2+w] * vec[z])) + (mat[m4col3+w] * vec[w])
 }
 
+func (result *Vector4) MulM4Self(mat *Matrix4) {
+	tmp := *result
+	result.MulM4(&tmp, mat)
+
+}
+
+func (result *Vector4) MulM4V3(mat *Matrix4, vec *Vector3) {
+	result[x] = ((mat[m4col0+x] * vec[x]) + (mat[m4col1+x] * vec[y])) + (mat[m4col2+x] * vec[z])
+	result[y] = ((mat[m4col0+y] * vec[x]) + (mat[m4col1+y] * vec[y])) + (mat[m4col2+y] * vec[z])
+	result[z] = ((mat[m4col0+z] * vec[x]) + (mat[m4col1+z] * vec[y])) + (mat[m4col2+z] * vec[z])
+	result[w] = ((mat[m4col0+w] * vec[x]) + (mat[m4col1+w] * vec[y])) + (mat[m4col2+w] * vec[z])
+}
+
+func (result *Vector4) MulM4P3(mat *Matrix4, pnt *Point3) {
+	result[x] = (((mat[m4col0+x] * pnt[x]) + (mat[m4col1+x] * pnt[y])) + (mat[m4col2+x] * pnt[z])) + mat[m4col3+x]
+	result[y] = (((mat[m4col0+y] * pnt[x]) + (mat[m4col1+y] * pnt[y])) + (mat[m4col2+y] * pnt[z])) + mat[m4col3+y]
+	result[z] = (((mat[m4col0+z] * pnt[x]) + (mat[m4col1+z] * pnt[y])) + (mat[m4col2+z] * pnt[z])) + mat[m4col3+z]
+	result[w] = (((mat[m4col0+w] * pnt[x]) + (mat[m4col1+w] * pnt[y])) + (mat[m4col2+w] * pnt[z])) + mat[m4col3+w]
+}
+
+func (result *Matrix4) Mul(mat0, mat1 *Matrix4) {
+	//M4MulV4(&tmpResult.Col0, mat0, &mat1.Col0)
+	result[m4col0+x] = (((mat0[m4col0+x] * mat1[m4col0+x]) + (mat0[m4col1+x] * mat1[m4col0+y])) + (mat0[m4col2+x] * mat1[m4col0+z])) + (mat0[m4col3+x] * mat1[m4col0+w])
+	result[m4col0+y] = (((mat0[m4col0+y] * mat1[m4col0+x]) + (mat0[m4col1+y] * mat1[m4col0+y])) + (mat0[m4col2+y] * mat1[m4col0+z])) + (mat0[m4col3+y] * mat1[m4col0+w])
+	result[m4col0+z] = (((mat0[m4col0+z] * mat1[m4col0+x]) + (mat0[m4col1+z] * mat1[m4col0+y])) + (mat0[m4col2+z] * mat1[m4col0+z])) + (mat0[m4col3+z] * mat1[m4col0+w])
+	result[m4col0+w] = (((mat0[m4col0+w] * mat1[m4col0+x]) + (mat0[m4col1+w] * mat1[m4col0+y])) + (mat0[m4col2+w] * mat1[m4col0+z])) + (mat0[m4col3+w] * mat1[m4col0+w])
+
+	//M4MulV4(&tmpResult.Col1, mat0, &mat1.Col1)
+	result[m4col1+x] = (((mat0[m4col0+x] * mat1[m4col1+x]) + (mat0[m4col1+x] * mat1[m4col1+y])) + (mat0[m4col2+x] * mat1[m4col1+z])) + (mat0[m4col3+x] * mat1[m4col1+w])
+	result[m4col1+y] = (((mat0[m4col0+y] * mat1[m4col1+x]) + (mat0[m4col1+y] * mat1[m4col1+y])) + (mat0[m4col2+y] * mat1[m4col1+z])) + (mat0[m4col3+y] * mat1[m4col1+w])
+	result[m4col1+z] = (((mat0[m4col0+z] * mat1[m4col1+x]) + (mat0[m4col1+z] * mat1[m4col1+y])) + (mat0[m4col2+z] * mat1[m4col1+z])) + (mat0[m4col3+z] * mat1[m4col1+w])
+	result[m4col1+w] = (((mat0[m4col0+w] * mat1[m4col1+x]) + (mat0[m4col1+w] * mat1[m4col1+y])) + (mat0[m4col2+w] * mat1[m4col1+z])) + (mat0[m4col3+w] * mat1[m4col1+w])
+
+	//M4MulV4(&tmpResult.Col2, mat0, &mat1.Col2)
+	result[m4col2+x] = (((mat0[m4col0+x] * mat1[m4col2+x]) + (mat0[m4col1+x] * mat1[m4col2+y])) + (mat0[m4col2+x] * mat1[m4col2+z])) + (mat0[m4col3+x] * mat1[m4col2+w])
+	result[m4col2+y] = (((mat0[m4col0+y] * mat1[m4col2+x]) + (mat0[m4col1+y] * mat1[m4col2+y])) + (mat0[m4col2+y] * mat1[m4col2+z])) + (mat0[m4col3+y] * mat1[m4col2+w])
+	result[m4col2+z] = (((mat0[m4col0+z] * mat1[m4col2+x]) + (mat0[m4col1+z] * mat1[m4col2+y])) + (mat0[m4col2+z] * mat1[m4col2+z])) + (mat0[m4col3+z] * mat1[m4col2+w])
+	result[m4col2+w] = (((mat0[m4col0+w] * mat1[m4col2+x]) + (mat0[m4col1+w] * mat1[m4col2+y])) + (mat0[m4col2+w] * mat1[m4col2+z])) + (mat0[m4col3+w] * mat1[m4col2+w])
+
+	//M4MulV4(&tmpResult.Col3, mat0, &mat1.Col3)
+	result[m4col3+x] = (((mat0[m4col0+x] * mat1[m4col3+x]) + (mat0[m4col1+x] * mat1[m4col3+y])) + (mat0[m4col2+x] * mat1[m4col3+z])) + (mat0[m4col3+x] * mat1[m4col3+w])
+	result[m4col3+y] = (((mat0[m4col0+y] * mat1[m4col3+x]) + (mat0[m4col1+y] * mat1[m4col3+y])) + (mat0[m4col2+y] * mat1[m4col3+z])) + (mat0[m4col3+y] * mat1[m4col3+w])
+	result[m4col3+z] = (((mat0[m4col0+z] * mat1[m4col3+x]) + (mat0[m4col1+z] * mat1[m4col3+y])) + (mat0[m4col2+z] * mat1[m4col3+z])) + (mat0[m4col3+z] * mat1[m4col3+w])
+	result[m4col3+w] = (((mat0[m4col0+w] * mat1[m4col3+x]) + (mat0[m4col1+w] * mat1[m4col3+y])) + (mat0[m4col2+w] * mat1[m4col3+z])) + (mat0[m4col3+w] * mat1[m4col3+w])
+
+}
+
+func (result *Matrix4) MulSelf(mat *Matrix4) {
+	tmp := *result
+	result.Mul(result, &tmp)
+}
+
+func (result *Matrix4) MulT3(mat *Matrix4, tfrm *Transform3) {
+	//M4MulV3(&tmpResult.Col0, mat, &tfrm1.Col0)
+	result[m4col0+x] = ((mat[m4col0+x] * tfrm[t3col0+x]) + (mat[m4col1+x] * tfrm[t3col0+y])) + (mat[m4col2+x] * tfrm[t3col0+z])
+	result[m4col0+y] = ((mat[m4col0+y] * tfrm[t3col0+x]) + (mat[m4col1+y] * tfrm[t3col0+y])) + (mat[m4col2+y] * tfrm[t3col0+z])
+	result[m4col0+z] = ((mat[m4col0+z] * tfrm[t3col0+x]) + (mat[m4col1+z] * tfrm[t3col0+y])) + (mat[m4col2+z] * tfrm[t3col0+z])
+	result[m4col0+w] = ((mat[m4col0+w] * tfrm[t3col0+x]) + (mat[m4col1+w] * tfrm[t3col0+y])) + (mat[m4col2+w] * tfrm[t3col0+z])
+
+	//M4MulV3(&tmpResult.Col1, mat, &tfrm1.Col1)
+	result[m4col1+x] = ((mat[m4col0+x] * tfrm[t3col1+x]) + (mat[m4col1+x] * tfrm[t3col1+y])) + (mat[m4col2+x] * tfrm[t3col1+z])
+	result[m4col1+y] = ((mat[m4col0+y] * tfrm[t3col1+x]) + (mat[m4col1+y] * tfrm[t3col1+y])) + (mat[m4col2+y] * tfrm[t3col1+z])
+	result[m4col1+z] = ((mat[m4col0+z] * tfrm[t3col1+x]) + (mat[m4col1+z] * tfrm[t3col1+y])) + (mat[m4col2+z] * tfrm[t3col1+z])
+	result[m4col1+w] = ((mat[m4col0+w] * tfrm[t3col1+x]) + (mat[m4col1+w] * tfrm[t3col1+y])) + (mat[m4col2+w] * tfrm[t3col1+z])
+
+	//M4MulV3(&tmpResult.Col2, mat, &tfrm1.Col2)
+	result[m4col2+x] = ((mat[m4col0+x] * tfrm[t3col2+x]) + (mat[m4col1+x] * tfrm[t3col2+y])) + (mat[m4col2+x] * tfrm[t3col2+z])
+	result[m4col2+y] = ((mat[m4col0+y] * tfrm[t3col2+x]) + (mat[m4col1+y] * tfrm[t3col2+y])) + (mat[m4col2+y] * tfrm[t3col2+z])
+	result[m4col2+z] = ((mat[m4col0+z] * tfrm[t3col2+x]) + (mat[m4col1+z] * tfrm[t3col2+y])) + (mat[m4col2+z] * tfrm[t3col2+z])
+	result[m4col2+w] = ((mat[m4col0+w] * tfrm[t3col2+x]) + (mat[m4col1+w] * tfrm[t3col2+y])) + (mat[m4col2+w] * tfrm[t3col2+z])
+
+	result[m4col3+x] = (((mat[m4col0+x] * tfrm[t3col3+x]) + (mat[m4col1+x] * tfrm[t3col3+y])) + (mat[m4col2+x] * tfrm[t3col3+z])) + mat[m4col3+x]
+	result[m4col3+y] = (((mat[m4col0+y] * tfrm[t3col3+x]) + (mat[m4col1+y] * tfrm[t3col3+y])) + (mat[m4col2+y] * tfrm[t3col3+z])) + mat[m4col3+y]
+	result[m4col3+z] = (((mat[m4col0+z] * tfrm[t3col3+x]) + (mat[m4col1+z] * tfrm[t3col3+y])) + (mat[m4col2+z] * tfrm[t3col3+z])) + mat[m4col3+z]
+	result[m4col3+w] = (((mat[m4col0+w] * tfrm[t3col3+x]) + (mat[m4col1+w] * tfrm[t3col3+y])) + (mat[m4col2+w] * tfrm[t3col3+z])) + mat[m4col3+w]
+
+}
+
+func (result *Matrix4) MulT3Self(tfrm *Transform3) {
+	tmp := *result
+	result.MulT3(&tmp, tfrm)
+}
+
+/*
 func (result *Matrix4) MulPerElem(result, mat0, mat1 *Matrix4) {
 	V4MulPerElem(&result.Col0, &mat0.Col0, &mat1.Col0)
 	V4MulPerElem(&result.Col1, &mat0.Col1, &mat1.Col1)
@@ -1133,36 +1294,39 @@ const (
 	t3col3 = 9
 )
 
-/*
-func T3Copy(result, tfrm *Transform3) {
-	V3Copy(&result.Col0, &tfrm.Col0)
-	V3Copy(&result.Col1, &tfrm.Col1)
-	V3Copy(&result.Col2, &tfrm.Col2)
-	V3Copy(&result.Col3, &tfrm.Col3)
+func (result *Transform3) MakeFromScalar(scalar float32) {
+	result[t3col0+x] = scalar
+	result[t3col0+y] = scalar
+	result[t3col0+z] = scalar
+
+	result[t3col1+x] = scalar
+	result[t3col1+y] = scalar
+	result[t3col1+z] = scalar
+
+	result[t3col2+x] = scalar
+	result[t3col2+y] = scalar
+	result[t3col2+z] = scalar
+
+	result[t3col3+x] = scalar
+	result[t3col3+y] = scalar
+	result[t3col3+z] = scalar
 }
 
-func T3MakeFromScalar(result *Transform3, scalar float32) {
-	V3MakeFromScalar(&result.Col0, scalar)
-	V3MakeFromScalar(&result.Col1, scalar)
-	V3MakeFromScalar(&result.Col2, scalar)
-	V3MakeFromScalar(&result.Col3, scalar)
+func (result *Transform3) MakeFromCols(col0, col1, col2, col3 *Vector3) {
+	result.SetCol(0, col0)
+	result.SetCol(1, col1)
+	result.SetCol(2, col2)
+	result.SetCol(3, col3)
 }
 
-func T3MakeFromCols(result *Transform3, col0, col1, col2, col3 *Vector3) {
-	V3Copy(&result.Col0, col0)
-	V3Copy(&result.Col1, col1)
-	V3Copy(&result.Col2, col2)
-	V3Copy(&result.Col3, col3)
-}
-
-func T3MakeFromM3V3(result *Transform3, tfrm *Matrix3, translateVec *Vector3) {
+func (result *Transform3) MakeFromM3V3(tfrm *Matrix3, translateVec *Vector3) {
 	result.SetUpper3x3(tfrm)
 	result.SetTranslation(translateVec)
 }
 
-func T3MakeFromQV3(result *Transform3, unitQuat *Quaternion, translateVec *Vector3) {
+func (result *Transform3) MakeFromQV3(unitQuat *Quaternion, translateVec *Vector3) {
 	var tmpM3_0 Matrix3
-	M3MakeFromQ(&tmpM3_0, unitQuat)
+	tmpM3_0.MakeFromQ(unitQuat)
 	result.SetUpper3x3(&tmpM3_0)
 	result.SetTranslation(translateVec)
 }
@@ -1170,99 +1334,166 @@ func T3MakeFromQV3(result *Transform3, unitQuat *Quaternion, translateVec *Vecto
 func (t *Transform3) SetCol(col int, vec *Vector3) {
 	switch col {
 	case 0:
-		V3Copy(&t.Col0, vec)
+		t[t3col0+x] = vec[x]
+		t[t3col0+y] = vec[y]
+		t[t3col0+z] = vec[z]
 	case 1:
-		V3Copy(&t.Col1, vec)
+		t[t3col1+x] = vec[x]
+		t[t3col1+y] = vec[y]
+		t[t3col1+z] = vec[z]
 	case 2:
-		V3Copy(&t.Col2, vec)
+		t[t3col2+x] = vec[x]
+		t[t3col2+y] = vec[y]
+		t[t3col2+z] = vec[z]
 	case 3:
-		V3Copy(&t.Col3, vec)
+		t[t3col3+x] = vec[x]
+		t[t3col3+y] = vec[y]
+		t[t3col3+z] = vec[z]
 	}
 }
 
 func (t *Transform3) SetRow(row int, vec *Vector4) {
-	t.Col0.SetElem(row, vec.GetElem(0))
-	t.Col1.SetElem(row, vec.GetElem(1))
-	t.Col2.SetElem(row, vec.GetElem(2))
-	t.Col3.SetElem(row, vec.GetElem(3))
+	t[t3col0+row] = vec[x]
+	t[t3col1+row] = vec[y]
+	t[t3col2+row] = vec[z]
 }
 
 func (t *Transform3) SetElem(col, row int, val float32) {
-	var tmpV3_0 Vector3
-	T3GetCol(&tmpV3_0, t, col)
-	tmpV3_0.SetElem(row, val)
-	t.SetCol(col, &tmpV3_0)
+	t[col*4+row] = val
 }
 
 func (t *Transform3) GetElem(col, row int) float32 {
-	var tmpV3_0 Vector3
-	T3GetCol(&tmpV3_0, t, col)
-	return tmpV3_0.GetElem(row)
+	return t[col*4+row]
 }
 
-func T3GetCol(result *Vector3, tfrm *Transform3, col int) {
+func (t *Transform3) GetCol(result *Vector3, col int) {
 	switch col {
 	case 0:
-		V3Copy(result, &tfrm.Col0)
+		copy(result[:], t[t3col0:t3col1-1])
 	case 1:
-		V3Copy(result, &tfrm.Col1)
+		copy(result[:], t[t3col1:t3col2-1])
 	case 2:
-		V3Copy(result, &tfrm.Col2)
+		copy(result[:], t[t3col2:t3col3-1])
 	case 3:
-		V3Copy(result, &tfrm.Col3)
+		copy(result[:], t[t3col3:])
+
 	}
 }
 
-func T3GetRow(result *Vector4, tfrm *Transform3, row int) {
-	V4MakeFromElems(result, tfrm.Col0.GetElem(row), tfrm.Col1.GetElem(row), tfrm.Col2.GetElem(row), tfrm.Col3.GetElem(row))
+func (t *Transform3) GetRow(result *Vector4, row int) {
+	result[x] = t[t3col0+row]
+	result[y] = t[t3col1+row]
+	result[z] = t[t3col2+row]
+	result[w] = t[t3col3+row]
 }
 
-func T3Inverse(result, tfrm *Transform3) {
-	var tmp0, tmp1, tmp2, inv0, inv1, inv2, tmpV3_0, tmpV3_1, tmpV3_2, tmpV3_3, tmpV3_4, tmpV3_5 Vector3
-	V3Cross(&tmp0, &tfrm.Col1, &tfrm.Col2)
-	V3Cross(&tmp1, &tfrm.Col2, &tfrm.Col0)
-	V3Cross(&tmp2, &tfrm.Col0, &tfrm.Col1)
-	detinv := (1.0 / V3Dot(&tfrm.Col2, &tmp2))
-	V3MakeFromElems(&inv0, (tmp0.X * detinv), (tmp1.X * detinv), (tmp2.X * detinv))
-	V3MakeFromElems(&inv1, (tmp0.Y * detinv), (tmp1.Y * detinv), (tmp2.Y * detinv))
-	V3MakeFromElems(&inv2, (tmp0.Z * detinv), (tmp1.Z * detinv), (tmp2.Z * detinv))
-	V3Copy(&result.Col0, &inv0)
-	V3Copy(&result.Col1, &inv1)
-	V3Copy(&result.Col2, &inv2)
-	V3ScalarMul(&tmpV3_0, &inv0, tfrm.Col3.X)
-	V3ScalarMul(&tmpV3_1, &inv1, tfrm.Col3.Y)
-	V3ScalarMul(&tmpV3_2, &inv2, tfrm.Col3.Z)
-	V3Add(&tmpV3_3, &tmpV3_1, &tmpV3_2)
-	V3Add(&tmpV3_4, &tmpV3_0, &tmpV3_3)
-	V3Neg(&tmpV3_5, &tmpV3_4)
-	V3Copy(&result.Col3, &tmpV3_5)
+func (result *Transform3) Inverse(tfrm *Transform3) {
+	var tmp0, tmp1, tmp2, tmpV3_3, tmpV3_4, tmpV3_5 Vector3
+	var tfrmCol2 Vector3
+
+	tmp0[x] = tfrm[t3col1+y]*tfrm[t3col2+z] - tfrm[t3col1+z]*tfrm[t3col2+y]
+	tmp0[y] = tfrm[t3col1+z]*tfrm[t3col2+x] - tfrm[t3col1+x]*tfrm[t3col2+z]
+	tmp0[z] = tfrm[t3col1+x]*tfrm[t3col2+y] - tfrm[t3col1+y]*tfrm[t3col2+x]
+
+	tmp1[x] = tfrm[t3col2+y]*tfrm[t3col0+z] - tfrm[t3col2+z]*tfrm[t3col0+y]
+	tmp1[y] = tfrm[t3col2+z]*tfrm[t3col0+x] - tfrm[t3col2+x]*tfrm[t3col0+z]
+	tmp1[z] = tfrm[t3col2+x]*tfrm[t3col0+y] - tfrm[t3col2+y]*tfrm[t3col0+x]
+
+	tmp2[x] = tfrm[t3col0+y]*tfrm[t3col1+z] - tfrm[t3col0+z]*tfrm[t3col1+y]
+	tmp2[y] = tfrm[t3col0+z]*tfrm[t3col1+x] - tfrm[t3col0+x]*tfrm[t3col1+z]
+	tmp2[z] = tfrm[t3col0+x]*tfrm[t3col1+y] - tfrm[t3col0+y]*tfrm[t3col1+x]
+
+	tfrm.GetCol(&tfrmCol2, 2)
+
+	detinv := (1.0 / tfrmCol2.Dot(&tmp2))
+
+	result[t3col0+x] = (tmp0[x] * detinv)
+	result[t3col0+y] = (tmp1[x] * detinv)
+	result[t3col0+z] = (tmp2[x] * detinv)
+
+	result[t3col1+x] = (tmp0[y] * detinv)
+	result[t3col1+y] = (tmp1[y] * detinv)
+	result[t3col1+z] = (tmp2[y] * detinv)
+
+	result[t3col2+x] = (tmp0[z] * detinv)
+	result[t3col2+y] = (tmp1[z] * detinv)
+	result[t3col2+z] = (tmp2[z] * detinv)
+
+	tmpV3_0 := Vector3{
+		result[t3col0+x] * tfrm[t3col3+x],
+		result[t3col0+y] * tfrm[t3col3+x],
+		result[t3col0+z] * tfrm[t3col3+x]}
+
+	tmpV3_1 := Vector3{
+		result[t3col1+x] * tfrm[t3col3+y],
+		result[t3col1+y] * tfrm[t3col3+y],
+		result[t3col1+z] * tfrm[t3col3+y]}
+
+	tmpV3_2 := Vector3{
+		result[t3col2+x] * tfrm[t3col3+z],
+		result[t3col2+y] * tfrm[t3col3+z],
+		result[t3col2+z] * tfrm[t3col3+z]}
+
+	tmpV3_3.Add(&tmpV3_1, &tmpV3_2)
+	tmpV3_4.Add(&tmpV3_0, &tmpV3_3)
+	tmpV3_5.Neg(&tmpV3_4)
+
+	result[t3col3+x] = tmpV3_5[x]
+	result[t3col3+y] = tmpV3_5[y]
+	result[t3col3+z] = tmpV3_5[z]
+
 }
 
-func (t *Transform3) Invert() {
-	T3Inverse(t, t)
+func (t *Transform3) InverseSelf() {
+	tmp := *t
+	t.Inverse(&tmp)
 }
 
-func T3OrthoInverse(result, tfrm *Transform3) {
-	var inv0, inv1, inv2, tmpV3_0, tmpV3_1, tmpV3_2, tmpV3_3, tmpV3_4, tmpV3_5 Vector3
-	V3MakeFromElems(&inv0, tfrm.Col0.X, tfrm.Col1.X, tfrm.Col2.X)
-	V3MakeFromElems(&inv1, tfrm.Col0.Y, tfrm.Col1.Y, tfrm.Col2.Y)
-	V3MakeFromElems(&inv2, tfrm.Col0.Z, tfrm.Col1.Z, tfrm.Col2.Z)
-	V3Copy(&result.Col0, &inv0)
-	V3Copy(&result.Col1, &inv1)
-	V3Copy(&result.Col2, &inv2)
-	V3ScalarMul(&tmpV3_0, &inv0, tfrm.Col3.X)
-	V3ScalarMul(&tmpV3_1, &inv1, tfrm.Col3.Y)
-	V3ScalarMul(&tmpV3_2, &inv2, tfrm.Col3.Z)
-	V3Add(&tmpV3_3, &tmpV3_1, &tmpV3_2)
-	V3Add(&tmpV3_4, &tmpV3_0, &tmpV3_3)
-	V3Neg(&tmpV3_5, &tmpV3_4)
-	V3Copy(&result.Col3, &tmpV3_5)
+func (result *Transform3) OrthoInverse(tfrm *Transform3) {
+	var tmpV3_3, tmpV3_4, tmpV3_5 Vector3
+
+	result[t3col0+x] = tfrm[t3col0+x]
+	result[t3col0+y] = tfrm[t3col1+x]
+	result[t3col0+z] = tfrm[t3col2+x]
+
+	result[t3col1+x] = tfrm[t3col0+y]
+	result[t3col1+y] = tfrm[t3col1+y]
+	result[t3col1+z] = tfrm[t3col2+y]
+
+	result[t3col2+x] = tfrm[t3col0+z]
+	result[t3col2+y] = tfrm[t3col1+z]
+	result[t3col2+z] = tfrm[t3col2+z]
+
+	tmpV3_0 := Vector3{
+		result[t3col0+x] * tfrm[t3col3+x],
+		result[t3col0+y] * tfrm[t3col3+x],
+		result[t3col0+z] * tfrm[t3col3+x]}
+
+	tmpV3_1 := Vector3{
+		result[t3col1+x] * tfrm[t3col3+y],
+		result[t3col1+y] * tfrm[t3col3+y],
+		result[t3col1+z] * tfrm[t3col3+y]}
+
+	tmpV3_2 := Vector3{
+		result[t3col2+x] * tfrm[t3col3+z],
+		result[t3col2+y] * tfrm[t3col3+z],
+		result[t3col2+z] * tfrm[t3col3+z]}
+
+	tmpV3_3.Add(&tmpV3_1, &tmpV3_2)
+	tmpV3_4.Add(&tmpV3_0, &tmpV3_3)
+	tmpV3_5.Neg(&tmpV3_4)
+
+	result[t3col3+x] = tmpV3_5[x]
+	result[t3col3+y] = tmpV3_5[y]
+	result[t3col3+z] = tmpV3_5[z]
 }
 
-func (t *Transform3) OrthoInvert() {
-	T3OrthoInverse(t, t)
+func (result *Transform3) OrthoInverseSelf() {
+	tmp := *result
+	result.OrthoInverse(&tmp)
 }
 
+/*
 func T3AbsPerElem(result, tfrm *Transform3) {
 	V3AbsPerElem(&result.Col0, &tfrm.Col0)
 	V3AbsPerElem(&result.Col1, &tfrm.Col1)
@@ -1310,23 +1541,42 @@ func T3MakeIdentity(result *Transform3) {
 	V3MakeFromScalar(&result.Col3, 0.0)
 }
 
-func (m *Transform3) SetUpper3x3(tfrm *Matrix3) {
-	V3Copy(&m.Col0, &tfrm.Col0)
-	V3Copy(&m.Col1, &tfrm.Col1)
-	V3Copy(&m.Col2, &tfrm.Col2)
-}
+*/
+func (t *Transform3) SetUpper3x3(m *Matrix3) {
+	t[t3col0+x] = m[m3col0+x]
+	t[t3col0+y] = m[m3col0+y]
+	t[t3col0+z] = m[m3col0+z]
 
-func T3GetUpper3x3(result *Matrix3, tfrm *Transform3) {
-	M3MakeFromCols(result, &tfrm.Col0, &tfrm.Col1, &tfrm.Col2)
+	t[t3col1+x] = m[m3col1+x]
+	t[t3col1+y] = m[m3col1+y]
+	t[t3col1+z] = m[m3col1+z]
+
+	t[t3col2+x] = m[m3col2+x]
+	t[t3col2+y] = m[m3col2+y]
+	t[t3col2+z] = m[m3col2+z]
 }
 
 func (t *Transform3) Upper3x3(result *Matrix3) {
-	T3GetUpper3x3(result, t)
+	result[m3col0+x] = t[t3col0+x]
+	result[m3col0+y] = t[t3col0+y]
+	result[m3col0+z] = t[t3col0+z]
+
+	result[m3col1+x] = t[t3col1+x]
+	result[m3col1+y] = t[t3col1+y]
+	result[m3col1+z] = t[t3col1+z]
+
+	result[m3col2+x] = t[t3col2+x]
+	result[m3col2+y] = t[t3col2+y]
+	result[m3col2+z] = t[t3col2+z]
 }
 
 func (t *Transform3) SetTranslation(translateVec *Vector3) {
-	V3Copy(&t.Col3, translateVec)
+	t[t3col3+x] = translateVec[x]
+	t[t3col3+y] = translateVec[y]
+	t[t3col3+z] = translateVec[z]
 }
+
+/*
 
 func T3GetTranslation(result *Vector3, tfrm *Transform3) {
 	V3Copy(result, &tfrm.Col3)
