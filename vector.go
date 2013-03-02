@@ -47,7 +47,7 @@ func (result *Vector3) Add(vec0, vec1 *Vector3) {
 	result[z] = vec0[z] + vec1[z]
 }
 
-func (result *Vector3) AddSelf(vec *Vector3) {
+func (result *Vector3) AddToSelf(vec *Vector3) {
 	result.Add(result, vec)
 }
 
@@ -57,7 +57,7 @@ func (result *Vector3) Sub(vec0, vec1 *Vector3) {
 	result[z] = vec0[z] - vec1[z]
 }
 
-func (result *Vector3) SubSelf(vec *Vector3) {
+func (result *Vector3) SubFromSelf(vec *Vector3) {
 	result.Sub(result, vec)
 }
 
@@ -67,7 +67,7 @@ func (result *Vector3) AddP3(vec0 *Vector3, pnt1 *Point3) {
 	result[z] = vec0[z] + pnt1[z]
 }
 
-func (result *Vector3) AddP3Self(pnt1 *Point3) {
+func (result *Vector3) AddP3ToSelf(pnt1 *Point3) {
 	result.AddP3(result, pnt1)
 }
 
@@ -259,11 +259,6 @@ func (result *Vector3) Cross(vec0, vec1 *Vector3) {
 	result[z] = vec0[x]*vec1[y] - vec0[y]*vec1[x]
 }
 
-func (result *Vector3) CrossSelf(vec *Vector3) {
-	tmp := *result
-	result.Cross(&tmp, vec)
-}
-
 func (result *Vector3) Select(vec0, vec1 *Vector3, select1 int) {
 	if select1 != 0 {
 		result[x] = vec1[x]
@@ -276,10 +271,6 @@ func (result *Vector3) Select(vec0, vec1 *Vector3, select1 int) {
 	}
 }
 
-func (result *Vector3) SelectSelf(vec *Vector3, select1 int) {
-	result.Select(result, vec, select1)
-}
-
 func (result *Vector3) Velocity(start, end *Vector3, elapsedTime float32) {
 	//change in position / elapsedTime
 	result.Sub(start, end)
@@ -290,7 +281,7 @@ func (result *Vector3) Velocity(start, end *Vector3, elapsedTime float32) {
 
 func (result *Vector3) Lerp(t float32, vec0, vec1 *Vector3) {
 	result.Sub(vec1, vec0)
-	result.ScalarMul(result, t)
+	result.ScalarMulSelf(t)
 	result.Add(vec0, result)
 }
 
@@ -315,7 +306,7 @@ func (result *Vector3) Slerp(t float32, unitVec0, unitVec1 *Vector3) {
 
 	tmpV3.ScalarMul(unitVec0, scale0)
 	result.ScalarMul(unitVec1, scale1)
-	result.AddSelf(&tmpV3)
+	result.AddToSelf(&tmpV3)
 }
 
 func (result *Vector3) SlerpSelf(t float32, vecTo *Vector3) {
@@ -419,7 +410,7 @@ func (v *Vector4) SetXYZ(vec *Vector3) {
 	v[z] = vec[z]
 }
 
-func (result *Vector3) GetXYZ(vec *Vector4) {
+func (vec *Vector4) GetXYZ(result *Vector3) {
 	result[x] = vec[x]
 	result[y] = vec[y]
 	result[z] = vec[z]
@@ -432,7 +423,7 @@ func (result *Vector4) Add(vec0, vec1 *Vector4) {
 	result[w] = vec0[w] + vec1[w]
 }
 
-func (result *Vector4) AddSelf(vec *Vector4) {
+func (result *Vector4) AddToSelf(vec *Vector4) {
 	result.Add(result, vec)
 }
 
@@ -443,7 +434,7 @@ func (result *Vector4) Sub(vec0, vec1 *Vector4) {
 	result[w] = vec0[w] - vec1[w]
 }
 
-func (result *Vector4) SubSelf(vec *Vector4) {
+func (result *Vector4) SubFromSelf(vec *Vector4) {
 	result.Sub(result, vec)
 }
 
@@ -664,10 +655,6 @@ func (result *Vector4) Select(vec0, vec1 *Vector4, select1 int) {
 	}
 }
 
-func (result *Vector4) SelectSelf(vec *Vector4, select1 int) {
-	result.Select(result, vec, select1)
-}
-
 //Point3
 
 func (result *Point3) MakeFromV3(vec *Vector3) {
@@ -706,7 +693,7 @@ func (result *Point3) AddV3(pnt0 *Point3, vec1 *Vector3) {
 	result[z] = pnt0[z] + vec1[z]
 }
 
-func (result *Point3) AddV3Self(vec1 *Vector3) {
+func (result *Point3) AddV3ToSelf(vec1 *Vector3) {
 	result.AddV3(result, vec1)
 }
 
@@ -716,7 +703,7 @@ func (result *Point3) SubV3(pnt0 *Point3, vec1 *Vector3) {
 	result[z] = pnt0[z] - vec1[z]
 }
 
-func (result *Point3) SubV3Self(vec1 *Vector3) {
+func (result *Point3) SubV3FromSelf(vec1 *Vector3) {
 	result.SubV3(result, vec1)
 }
 
@@ -903,8 +890,4 @@ func (result *Point3) Select(pnt0, pnt1 *Point3, select1 int) {
 		result[y] = pnt0[y]
 		result[z] = pnt0[z]
 	}
-}
-
-func (result *Point3) SelectSelf(pnt *Point3, select1 int) {
-	result.Select(result, pnt, select1)
 }
