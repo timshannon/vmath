@@ -92,11 +92,11 @@ func (m *Matrix3) SetElem(col, row int, val float32) {
 	m[col*3+row] = val
 }
 
-func (m *Matrix3) GetElem(col, row int) float32 {
+func (m *Matrix3) Elem(col, row int) float32 {
 	return m[col*3+row]
 }
 
-func (m *Matrix3) GetCol(result *Vector3, col int) {
+func (m *Matrix3) Col(result *Vector3, col int) {
 	switch col {
 	case 0:
 		copy(result[:], m[m3col0:m3col1-1])
@@ -107,7 +107,7 @@ func (m *Matrix3) GetCol(result *Vector3, col int) {
 	}
 }
 
-func (mat *Matrix3) GetRow(result *Vector3, row int) {
+func (mat *Matrix3) Row(result *Vector3, row int) {
 	result[x] = mat[m3col0+row]
 	result[y] = mat[m3col1+row]
 	result[z] = mat[m3col2+row]
@@ -137,9 +137,9 @@ func (result *Matrix3) Inverse(mat *Matrix3) {
 	var col0, col1, col2 Vector3
 	var tmp0, tmp1, tmp2 Vector3
 
-	mat.GetCol(&col0, 0)
-	mat.GetCol(&col1, 1)
-	mat.GetCol(&col2, 2)
+	mat.Col(&col0, 0)
+	mat.Col(&col1, 1)
+	mat.Col(&col2, 2)
 
 	tmp0.Cross(&col1, &col2)
 	tmp1.Cross(&col2, &col0)
@@ -167,9 +167,9 @@ func (m *Matrix3) InverseSelf() {
 
 func (m *Matrix3) Determinant() float32 {
 	var col0, col1, col2, tmp Vector3
-	m.GetCol(&col0, 0)
-	m.GetCol(&col1, 0)
-	m.GetCol(&col2, 0)
+	m.Col(&col0, 0)
+	m.Col(&col1, 0)
+	m.Col(&col2, 0)
 
 	tmp.Cross(&col0, &col1)
 
@@ -647,11 +647,11 @@ func (m *Matrix4) SetElem(col, row int, val float32) {
 	m[col*4+row] = val
 }
 
-func (m *Matrix4) GetElem(col, row int) float32 {
+func (m *Matrix4) Elem(col, row int) float32 {
 	return m[col*4+row]
 }
 
-func (m *Matrix4) GetCol(result *Vector4, col int) {
+func (m *Matrix4) Col(result *Vector4, col int) {
 	switch col {
 	case 0:
 		copy(result[:], m[m4col0:m4col1-1])
@@ -665,7 +665,7 @@ func (m *Matrix4) GetCol(result *Vector4, col int) {
 	}
 }
 
-func (mat *Matrix4) GetRow(result *Vector4, row int) {
+func (mat *Matrix4) Row(result *Vector4, row int) {
 	result[x] = mat[m4col0+row]
 	result[y] = mat[m4col1+row]
 	result[z] = mat[m4col2+row]
@@ -1085,137 +1085,322 @@ func (result *Matrix4) MulT3Self(tfrm *Transform3) {
 	result.MulT3(&tmp, tfrm)
 }
 
-/*
-func (result *Matrix4) MulPerElem(result, mat0, mat1 *Matrix4) {
-	V4MulPerElem(&result.Col0, &mat0.Col0, &mat1.Col0)
-	V4MulPerElem(&result.Col1, &mat0.Col1, &mat1.Col1)
-	V4MulPerElem(&result.Col2, &mat0.Col2, &mat1.Col2)
-	V4MulPerElem(&result.Col3, &mat0.Col3, &mat1.Col3)
+func (result *Matrix4) MulPerElem(mat0, mat1 *Matrix4) {
+	result[m4col0+x] = mat0[m4col0+x] * mat1[m4col0+x]
+	result[m4col0+y] = mat0[m4col0+y] * mat1[m4col0+y]
+	result[m4col0+z] = mat0[m4col0+z] * mat1[m4col0+z]
+	result[m4col0+w] = mat0[m4col0+w] * mat1[m4col0+w]
+
+	result[m4col1+x] = mat0[m4col1+x] * mat1[m4col1+x]
+	result[m4col1+y] = mat0[m4col1+y] * mat1[m4col1+y]
+	result[m4col1+z] = mat0[m4col1+z] * mat1[m4col1+z]
+	result[m4col1+w] = mat0[m4col1+w] * mat1[m4col1+w]
+
+	result[m4col2+x] = mat0[m4col2+x] * mat1[m4col2+x]
+	result[m4col2+y] = mat0[m4col2+y] * mat1[m4col2+y]
+	result[m4col2+z] = mat0[m4col2+z] * mat1[m4col2+z]
+	result[m4col2+w] = mat0[m4col2+w] * mat1[m4col2+w]
+
+	result[m4col3+x] = mat0[m4col3+x] * mat1[m4col3+x]
+	result[m4col3+y] = mat0[m4col3+y] * mat1[m4col3+y]
+	result[m4col3+z] = mat0[m4col3+z] * mat1[m4col3+z]
+	result[m4col3+w] = mat0[m4col3+w] * mat1[m4col3+w]
 }
 
-func (result *Matrix4) MakeIdentity(result *Matrix4) {
-	V4MakeXAxis(&result.Col0)
-	V4MakeYAxis(&result.Col1)
-	V4MakeZAxis(&result.Col2)
-	V4MakeWAxis(&result.Col3)
+func (result *Matrix4) MulPerElemSelf(mat *Matrix4) {
+	result.MulPerElem(result, mat)
+
+}
+
+func (result *Matrix4) MakeIdentity() {
+	//x-axis
+	result[m4col0+x] = 1.0
+	result[m4col0+y] = 0.0
+	result[m4col0+z] = 0.0
+	result[m4col0+w] = 0.0
+	//y-axis
+	result[m4col1+x] = 0.0
+	result[m4col1+y] = 1.0
+	result[m4col1+z] = 0.0
+	result[m4col1+w] = 0.0
+	//z-axis
+	result[m4col2+x] = 0.0
+	result[m4col2+y] = 0.0
+	result[m4col2+z] = 1.0
+	result[m4col2+w] = 0.0
+	//w-axis
+	result[m4col3+x] = 0.0
+	result[m4col3+y] = 0.0
+	result[m4col3+z] = 0.0
+	result[m4col3+w] = 1.0
 }
 
 func (m *Matrix4) SetUpper3x3(mat3 *Matrix3) {
-	m.Col0.SetXYZ(&mat3.Col0)
-	m.Col0.SetXYZ(&mat3.Col1)
-	m.Col0.SetXYZ(&mat3.Col2)
+	m[m4col0+x] = mat3[m3col0+x]
+	m[m4col0+y] = mat3[m3col0+y]
+	m[m4col0+z] = mat3[m3col0+z]
+
+	m[m4col1+x] = mat3[m3col1+x]
+	m[m4col1+y] = mat3[m3col1+y]
+	m[m4col1+z] = mat3[m3col1+z]
+
+	m[m4col2+x] = mat3[m3col2+x]
+	m[m4col2+y] = mat3[m3col2+y]
+	m[m4col2+z] = mat3[m3col2+z]
 }
 
 func (m *Matrix4) Upper3x3(result *Matrix3) {
-	V4GetXYZ(&result.Col0, &m.Col0)
-	V4GetXYZ(&result.Col1, &m.Col1)
-	V4GetXYZ(&result.Col2, &m.Col2)
-}
-func (result *Matrix4) GetUpper3x3(result *Matrix3, mat *Matrix4) {
-	V4GetXYZ(&result.Col0, &mat.Col0)
-	V4GetXYZ(&result.Col1, &mat.Col1)
-	V4GetXYZ(&result.Col2, &mat.Col2)
+	result[m3col0+x] = m[m4col0+x]
+	result[m3col0+y] = m[m4col0+y]
+	result[m3col0+z] = m[m4col0+z]
+
+	result[m3col1+x] = m[m4col1+x]
+	result[m3col1+y] = m[m4col1+y]
+	result[m3col1+z] = m[m4col1+z]
+
+	result[m3col2+x] = m[m4col2+x]
+	result[m3col2+y] = m[m4col2+y]
+	result[m3col2+z] = m[m4col2+z]
 }
 
 func (m *Matrix4) SetTranslation(translateVec *Vector3) {
-	m.Col3.SetXYZ(translateVec)
-}
-
-func (result *Matrix4) GetTranslation(result *Vector3, mat *Matrix4) {
-	V4GetXYZ(result, &mat.Col3)
+	m[m4col3+x] = translateVec[x]
+	m[m4col3+y] = translateVec[y]
+	m[m4col3+z] = translateVec[z]
 }
 
 func (m *Matrix4) Translation(result *Vector3) {
-	M4GetTranslation(result, m)
+	result[x] = m[m4col3+x]
+	result[y] = m[m4col3+y]
+	result[z] = m[m4col3+z]
 }
 
-func (result *Matrix4) MakeRotationX(result *Matrix4, radians float32) {
+func (result *Matrix4) MakeRotationX(radians float32) {
 	s := sin(radians)
 	c := cos(radians)
-	V4MakeXAxis(&result.Col0)
-	V4MakeFromElems(&result.Col1, 0.0, c, s, 0.0)
-	V4MakeFromElems(&result.Col2, 0.0, -s, c, 0.0)
-	V4MakeWAxis(&result.Col3)
+
+	//x-axis
+	result[m4col0+x] = 1.0
+	result[m4col0+y] = 0.0
+	result[m4col0+z] = 0.0
+	result[m4col0+w] = 0.0
+
+	result[m4col1+x] = 0.0
+	result[m4col1+y] = c
+	result[m4col1+z] = s
+	result[m4col1+w] = 0.0
+
+	result[m4col2+x] = 0.0
+	result[m4col2+y] = -s
+	result[m4col2+z] = c
+	result[m4col2+w] = 0.0
+
+	//w-axis
+	result[m4col3+x] = 0.0
+	result[m4col3+y] = 0.0
+	result[m4col3+z] = 0.0
+	result[m4col3+w] = 1.0
 }
 
-func (result *Matrix4) MakeRotationY(result *Matrix4, radians float32) {
+func (result *Matrix4) MakeRotationY(radians float32) {
 	s := sin(radians)
 	c := cos(radians)
-	V4MakeFromElems(&result.Col0, c, 0.0, -s, 0.0)
-	V4MakeYAxis(&result.Col1)
-	V4MakeFromElems(&result.Col2, s, 0.0, c, 0.0)
-	V4MakeWAxis(&result.Col3)
+
+	result[m4col0+x] = c
+	result[m4col0+y] = 0.0
+	result[m4col0+z] = -s
+	result[m4col0+w] = 0.0
+
+	//y-axis
+	result[m4col1+x] = 0.0
+	result[m4col1+y] = 1.0
+	result[m4col1+z] = 0.0
+	result[m4col1+w] = 0.0
+
+	result[m4col2+x] = s
+	result[m4col2+y] = 0.0
+	result[m4col2+z] = c
+	result[m4col2+w] = 0.0
+
+	//w-axis
+	result[m4col3+x] = 0.0
+	result[m4col3+y] = 0.0
+	result[m4col3+z] = 0.0
+	result[m4col3+w] = 1.0
 }
 
-func (result *Matrix4) MakeRotationZ(result *Matrix4, radians float32) {
+func (result *Matrix4) MakeRotationZ(radians float32) {
 	s := sin(radians)
 	c := cos(radians)
-	V4MakeFromElems(&result.Col0, c, s, 0.0, 0.0)
-	V4MakeFromElems(&result.Col1, -s, c, 0.0, 0.0)
-	V4MakeZAxis(&result.Col2)
-	V4MakeWAxis(&result.Col3)
+
+	result[m4col0+x] = c
+	result[m4col0+y] = s
+	result[m4col0+z] = 0.0
+	result[m4col0+w] = 0.0
+
+	result[m4col1+x] = -s
+	result[m4col1+y] = c
+	result[m4col1+z] = 0.0
+	result[m4col1+w] = 0.0
+
+	//z-axis
+	result[m4col2+x] = 0.0
+	result[m4col2+y] = 0.0
+	result[m4col2+z] = 1.0
+	result[m4col2+w] = 0.0
+
+	//w-axis
+	result[m4col3+x] = 0.0
+	result[m4col3+y] = 0.0
+	result[m4col3+z] = 0.0
+	result[m4col3+w] = 1.0
 }
 
-func (result *Matrix4) MakeRotationZYX(result *Matrix4, radiansXYZ *Vector3) {
-	sX := sin(radiansXYZ.X)
-	cX := cos(radiansXYZ.X)
-	sY := sin(radiansXYZ.Y)
-	cY := cos(radiansXYZ.Y)
-	sZ := sin(radiansXYZ.Z)
-	cZ := cos(radiansXYZ.Z)
+func (result *Matrix4) MakeRotationZYX(radiansXYZ *Vector3) {
+	sX := sin(radiansXYZ[x])
+	cX := cos(radiansXYZ[x])
+	sY := sin(radiansXYZ[y])
+	cY := cos(radiansXYZ[y])
+	sZ := sin(radiansXYZ[z])
+	cZ := cos(radiansXYZ[z])
 	tmp0 := (cZ * sY)
 	tmp1 := (sZ * sY)
-	V4MakeFromElems(&result.Col0, (cZ * cY), (sZ * cY), -sY, 0.0)
-	V4MakeFromElems(&result.Col1, ((tmp0 * sX) - (sZ * cX)), ((tmp1 * sX) + (cZ * cX)), (cY * sX), 0.0)
-	V4MakeFromElems(&result.Col2, ((tmp0 * cX) + (sZ * sX)), ((tmp1 * cX) - (cZ * sX)), (cY * cX), 0.0)
-	V4MakeWAxis(&result.Col3)
+
+	result[m4col0+x] = (cZ * cY)
+	result[m4col0+y] = (sZ * cY)
+	result[m4col0+z] = -sY
+	result[m4col0+w] = 0.0
+
+	result[m4col1+x] = ((tmp0 * sX) - (sZ * cX))
+	result[m4col1+y] = ((tmp1 * sX) + (cZ * cX))
+	result[m4col1+z] = (cY * sX)
+	result[m4col1+w] = 0.0
+
+	result[m4col2+x] = ((tmp0 * cX) + (sZ * sX))
+	result[m4col2+y] = ((tmp1 * cX) - (cZ * sX))
+	result[m4col2+z] = (cY * cX)
+	result[m4col2+w] = 0.0
+
+	//w-axis
+	result[m4col3+x] = 0.0
+	result[m4col3+y] = 0.0
+	result[m4col3+z] = 0.0
+	result[m4col3+w] = 1.0
 }
 
-func (result *Matrix4) MakeRotationAxis(result *Matrix4, radians float32, unitVec *Vector3) {
+func (result *Matrix4) MakeRotationAxis(radians float32, unitVec *Vector3) {
 	s := sin(radians)
 	c := cos(radians)
-	x := unitVec.X
-	y := unitVec.Y
-	z := unitVec.Z
-	xy := x * y
-	yz := y * z
-	zx := z * x
+	X := unitVec[x]
+	Y := unitVec[y]
+	Z := unitVec[z]
+	xy := X * Y
+	yz := Y * Z
+	zx := Z * X
 	oneMinusC := 1.0 - c
-	V4MakeFromElems(&result.Col0, (((x * x) * oneMinusC) + c), ((xy * oneMinusC) + (z * s)), ((zx * oneMinusC) - (y * s)), 0.0)
-	V4MakeFromElems(&result.Col1, ((xy * oneMinusC) - (z * s)), (((y * y) * oneMinusC) + c), ((yz * oneMinusC) + (x * s)), 0.0)
-	V4MakeFromElems(&result.Col2, ((zx * oneMinusC) + (y * s)), ((yz * oneMinusC) - (x * s)), (((z * z) * oneMinusC) + c), 0.0)
-	V4MakeWAxis(&result.Col3)
+
+	result[m4col0+x] = (((X * X) * oneMinusC) + c)
+	result[m4col0+y] = ((xy * oneMinusC) + (Z * s))
+	result[m4col0+z] = ((zx * oneMinusC) - (Y * s))
+	result[m4col0+w] = 0.0
+
+	result[m4col1+x] = ((xy * oneMinusC) - (Z * s))
+	result[m4col1+y] = (((Y * Y) * oneMinusC) + c)
+	result[m4col1+z] = ((yz * oneMinusC) + (X * s))
+	result[m4col1+w] = 0.0
+
+	result[m4col2+x] = ((zx * oneMinusC) + (Y * s))
+	result[m4col2+y] = ((yz * oneMinusC) - (X * s))
+	result[m4col2+z] = (((Z * Z) * oneMinusC) + c)
+	result[m4col2+w] = 0.0
+
+	//w-axis
+	result[m4col3+x] = 0.0
+	result[m4col3+y] = 0.0
+	result[m4col3+z] = 0.0
+	result[m4col3+w] = 1.0
+
 }
 
-func (result *Matrix4) MakeRotationQ(result *Matrix4, unitQuat *Quaternion) {
-	var tmpT3_0 Transform3
-	T3MakeRotationQ(&tmpT3_0, unitQuat)
-	M4MakeFromT3(result, &tmpT3_0)
+func (result *Matrix4) MakeRotationQ(unitQuat *Quaternion) {
+	var tmpT3 Transform3
+
+	tmpT3.MakeRotationQ(unitQuat)
+	result.MakeFromT3(&tmpT3)
 }
 
-func (result *Matrix4) MakeScale(result *Matrix4, scaleVec *Vector3) {
-	V4MakeFromElems(&result.Col0, scaleVec.X, 0.0, 0.0, 0.0)
-	V4MakeFromElems(&result.Col1, 0.0, scaleVec.Y, 0.0, 0.0)
-	V4MakeFromElems(&result.Col2, 0.0, 0.0, scaleVec.Z, 0.0)
-	V4MakeWAxis(&result.Col3)
+func (result *Matrix4) MakeScale(scaleVec *Vector3) {
+	result[m4col0+x] = scaleVec[x]
+	result[m4col0+y] = 0.0
+	result[m4col0+z] = 0.0
+	result[m4col0+w] = 0.0
+
+	result[m4col1+x] = 0.0
+	result[m4col1+y] = scaleVec[y]
+	result[m4col1+z] = 0.0
+	result[m4col1+w] = 0.0
+
+	result[m4col2+x] = 0.0
+	result[m4col2+y] = 0.0
+	result[m4col2+z] = scaleVec[z]
+	result[m4col2+w] = 0.0
+
+	//w-axis
+	result[m4col3+x] = 0.0
+	result[m4col3+y] = 0.0
+	result[m4col3+z] = 0.0
+	result[m4col3+w] = 1.0
 }
 
-func (result *Matrix4) AppendScale(result, mat *Matrix4, scaleVec *Vector3) {
-	V4ScalarMul(&result.Col0, &mat.Col0, scaleVec.X)
-	V4ScalarMul(&result.Col1, &mat.Col1, scaleVec.Y)
-	V4ScalarMul(&result.Col2, &mat.Col2, scaleVec.Z)
-	V4Copy(&result.Col3, &mat.Col3)
+func (result *Matrix4) AppendScale(mat *Matrix4, scaleVec *Vector3) {
+	result[m4col0+x] = mat[m4col0+x] * scaleVec[x]
+	result[m4col0+y] = mat[m4col0+y] * scaleVec[x]
+	result[m4col0+z] = mat[m4col0+z] * scaleVec[x]
+	result[m4col0+w] = mat[m4col0+w] * scaleVec[x]
+
+	result[m4col1+x] = mat[m4col1+x] * scaleVec[y]
+	result[m4col1+y] = mat[m4col1+y] * scaleVec[y]
+	result[m4col1+z] = mat[m4col1+z] * scaleVec[y]
+	result[m4col1+w] = mat[m4col1+w] * scaleVec[y]
+
+	result[m4col2+x] = mat[m4col2+x] * scaleVec[z]
+	result[m4col2+y] = mat[m4col2+y] * scaleVec[z]
+	result[m4col2+z] = mat[m4col2+z] * scaleVec[z]
+	result[m4col2+w] = mat[m4col2+w] * scaleVec[z]
+
+	result[m4col3+x] = mat[m4col3+x]
+	result[m4col3+y] = mat[m4col3+y]
+	result[m4col3+z] = mat[m4col3+z]
+	result[m4col3+w] = mat[m4col3+w]
+
 }
 
-func (result *Matrix4) PrependScale(result *Matrix4, scaleVec *Vector3, mat *Matrix4) {
-	var scale4 Vector4
-	V4MakeFromV3Scalar(&scale4, scaleVec, 1.0)
-	V4MulPerElem(&result.Col0, &mat.Col0, &scale4)
-	V4MulPerElem(&result.Col1, &mat.Col1, &scale4)
-	V4MulPerElem(&result.Col2, &mat.Col2, &scale4)
-	V4MulPerElem(&result.Col3, &mat.Col3, &scale4)
+func (result *Matrix4) AppendScaleSelf(scaleVec *Vector3) {
+	result.AppendScale(result, scaleVec)
 }
 
+func (result *Matrix4) PrependScale(scaleVec *Vector3, mat *Matrix4) {
+	result[m4col0+x] = mat[m4col0+x] * scaleVec[x]
+	result[m4col0+y] = mat[m4col0+y] * scaleVec[y]
+	result[m4col0+z] = mat[m4col0+z] * scaleVec[z]
+	result[m4col0+w] = mat[m4col0+w] * 1.0
+
+	result[m4col1+x] = mat[m4col1+x] * scaleVec[x]
+	result[m4col1+y] = mat[m4col1+y] * scaleVec[y]
+	result[m4col1+z] = mat[m4col1+z] * scaleVec[z]
+	result[m4col1+w] = mat[m4col1+w] * 1.0
+
+	result[m4col2+x] = mat[m4col2+x] * scaleVec[x]
+	result[m4col2+y] = mat[m4col2+y] * scaleVec[y]
+	result[m4col2+z] = mat[m4col2+z] * scaleVec[z]
+	result[m4col2+w] = mat[m4col2+w] * 1.0
+}
+
+func (result *Matrix4) PrependScaleSelf(scaleVec *Vector3) {
+	result.PrependScale(scaleVec, result)
+}
+
+/*
 func (result *Matrix4) MakeTranslation(result *Matrix4, translateVec *Vector3) {
 	V4MakeXAxis(&result.Col0)
 	V4MakeYAxis(&result.Col1)
@@ -1362,11 +1547,11 @@ func (t *Transform3) SetElem(col, row int, val float32) {
 	t[col*4+row] = val
 }
 
-func (t *Transform3) GetElem(col, row int) float32 {
+func (t *Transform3) Elem(col, row int) float32 {
 	return t[col*4+row]
 }
 
-func (t *Transform3) GetCol(result *Vector3, col int) {
+func (t *Transform3) Col(result *Vector3, col int) {
 	switch col {
 	case 0:
 		copy(result[:], t[t3col0:t3col1-1])
@@ -1380,7 +1565,7 @@ func (t *Transform3) GetCol(result *Vector3, col int) {
 	}
 }
 
-func (t *Transform3) GetRow(result *Vector4, row int) {
+func (t *Transform3) Row(result *Vector4, row int) {
 	result[x] = t[t3col0+row]
 	result[y] = t[t3col1+row]
 	result[z] = t[t3col2+row]
@@ -1403,7 +1588,7 @@ func (result *Transform3) Inverse(tfrm *Transform3) {
 	tmp2[y] = tfrm[t3col0+z]*tfrm[t3col1+x] - tfrm[t3col0+x]*tfrm[t3col1+z]
 	tmp2[z] = tfrm[t3col0+x]*tfrm[t3col1+y] - tfrm[t3col0+y]*tfrm[t3col1+x]
 
-	tfrm.GetCol(&tfrmCol2, 2)
+	tfrm.Col(&tfrmCol2, 2)
 
 	detinv := (1.0 / tfrmCol2.Dot(&tmp2))
 
@@ -1635,15 +1820,16 @@ func T3MakeRotationAxis(result *Transform3, radians float32, unitVec *Vector3) {
 	V3MakeFromScalar(&tmpV3_0, 0.0)
 	T3MakeFromM3V3(result, &tmpM3_0, &tmpV3_0)
 }
+*/
 
-func T3MakeRotationQ(result *Transform3, unitQuat *Quaternion) {
-	var tmpM3_0 Matrix3
-	var tmpV3_0 Vector3
-	M3MakeFromQ(&tmpM3_0, unitQuat)
-	V3MakeFromScalar(&tmpV3_0, 0.0)
-	T3MakeFromM3V3(result, &tmpM3_0, &tmpV3_0)
+func (result *Transform3) MakeRotationQ(unitQuat *Quaternion) {
+	var tmpM3 Matrix3
+
+	tmpM3.MakeFromQ(unitQuat)
+	result.MakeFromM3V3(&tmpM3, &Vector3{0, 0, 0})
 }
 
+/*
 func T3MakeScale(result *Transform3, scaleVec *Vector3) {
 	V3MakeFromElems(&result.Col0, scaleVec.X, 0.0, 0.0)
 	V3MakeFromElems(&result.Col1, 0.0, scaleVec.Y, 0.0)

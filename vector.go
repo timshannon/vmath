@@ -410,7 +410,7 @@ func (v *Vector4) SetXYZ(vec *Vector3) {
 	v[z] = vec[z]
 }
 
-func (vec *Vector4) GetXYZ(result *Vector3) {
+func (vec *Vector4) XYZ(result *Vector3) {
 	result[x] = vec[x]
 	result[y] = vec[y]
 	result[z] = vec[z]
