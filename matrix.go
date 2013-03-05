@@ -1400,42 +1400,74 @@ func (result *Matrix4) PrependScaleSelf(scaleVec *Vector3) {
 	result.PrependScale(scaleVec, result)
 }
 
-/*
-func (result *Matrix4) MakeTranslation(result *Matrix4, translateVec *Vector3) {
-	V4MakeXAxis(&result.Col0)
-	V4MakeYAxis(&result.Col1)
-	V4MakeZAxis(&result.Col2)
-	V4MakeFromV3Scalar(&result.Col3, translateVec, 1.0)
+func (result *Matrix4) MakeTranslation(translateVec *Vector3) {
+	//x-axis
+	result[m4col0+x] = 1.0
+	result[m4col0+y] = 0.0
+	result[m4col0+z] = 0.0
+	result[m4col0+w] = 0.0
+	//y-axis
+	result[m4col1+x] = 0.0
+	result[m4col1+y] = 1.0
+	result[m4col1+z] = 0.0
+	result[m4col1+w] = 0.0
+	//z-axis
+	result[m4col2+x] = 0.0
+	result[m4col2+y] = 0.0
+	result[m4col2+z] = 1.0
+	result[m4col2+w] = 0.0
+
+	result[m4col3+x] = translateVec[x]
+	result[m4col3+y] = translateVec[y]
+	result[m4col3+z] = translateVec[z]
+	result[m4col3+w] = 1.0
 }
 
-func (result *Matrix4) MakeLookAt(result *Matrix4, eyePos, lookAtPos *Point3, upVec *Vector3) {
+func (result *Matrix4) MakeLookAt(eyePos, lookAtPos *Point3, upVec *Vector3) {
 	var m4EyeFrame Matrix4
 	var v3X, v3Y, v3Z, tmpV3_0, tmpV3_1 Vector3
 	var tmpV4_0, tmpV4_1, tmpV4_2, tmpV4_3 Vector4
-	V3Normalize(&v3Y, upVec)
-	P3Sub(&tmpV3_0, eyePos, lookAtPos)
-	V3Normalize(&v3Z, &tmpV3_0)
-	V3Cross(&tmpV3_1, &v3Y, &v3Z)
-	V3Normalize(&v3X, &tmpV3_1)
-	V3Cross(&v3Y, &v3Z, &v3X)
-	V4MakeFromV3(&tmpV4_0, &v3X)
-	V4MakeFromV3(&tmpV4_1, &v3Y)
-	V4MakeFromV3(&tmpV4_2, &v3Z)
-	V4MakeFromP3(&tmpV4_3, eyePos)
-	M4MakeFromCols(&m4EyeFrame, &tmpV4_0, &tmpV4_1, &tmpV4_2, &tmpV4_3)
-	M4OrthoInverse(result, &m4EyeFrame)
+
+	v3Y.Normalize(upVec)
+	tmpV3_0.P3Sub(eyePos, lookAtPos)
+	v3Z.Normalize(&tmpV3_0)
+	tmpV3_1.Cross(&v3Y, &v3Z)
+	v3X.Normalize(&tmpV3_1)
+	v3Y.Cross(&v3Z, &v3X)
+	tmpV4_0.MakeFromV3(&v3X)
+	tmpV4_1.MakeFromV3(&v3Y)
+	tmpV4_2.MakeFromV3(&v3Z)
+	tmpV4_3.MakeFromP3(eyePos)
+	m4EyeFrame.MakeFromCols(&tmpV4_0, &tmpV4_1, &tmpV4_2, &tmpV4_3)
+	result.OrthoInverse(&m4EyeFrame)
 }
 
-func (result *Matrix4) MakePerspective(result *Matrix4, fovyRadians, aspect, zNear, zFar float32) {
+func (result *Matrix4) MakePerspective(fovyRadians, aspect, zNear, zFar float32) {
 	f := tan(g_PI_OVER_2 - (0.5 * fovyRadians))
 	rangeInv := 1.0 / (zNear - zFar)
-	V4MakeFromElems(&result.Col0, (f / aspect), 0.0, 0.0, 0.0)
-	V4MakeFromElems(&result.Col1, 0.0, f, 0.0, 0.0)
-	V4MakeFromElems(&result.Col2, 0.0, 0.0, ((zNear + zFar) * rangeInv), -1.0)
-	V4MakeFromElems(&result.Col3, 0.0, 0.0, (((zNear * zFar) * rangeInv) * 2.0), 0.0)
+
+	result[m4col0+x] = (f / aspect)
+	result[m4col0+y] = 0.0
+	result[m4col0+z] = 0.0
+	result[m4col0+w] = 0.0
+
+	result[m4col1+x] = 0.0
+	result[m4col1+y] = f
+	result[m4col1+z] = 0.0
+	result[m4col1+w] = 0.0
+
+	result[m4col2+x] = 0.0
+	result[m4col2+y] = 0.0
+	result[m4col2+z] = ((zNear + zFar) * rangeInv)
+	result[m4col2+w] = -1.0
+
+	result[m4col3+x] = 0.0
+	result[m4col3+y] = 0.0
+	result[m4col3+z] = (((zNear * zFar) * rangeInv) * 2.0)
+	result[m4col3+w] = 0.0
 }
 
-func (result *Matrix4) MakeFrustum(result *Matrix4, left, right, bottom, top, zNear, zFar float32) {
+func (result *Matrix4) MakeFrustum(left, right, bottom, top, zNear, zFar float32) {
 	sum_rl := (right + left)
 	sum_tb := (top + bottom)
 	sum_nf := (zNear + zFar)
@@ -1443,35 +1475,98 @@ func (result *Matrix4) MakeFrustum(result *Matrix4, left, right, bottom, top, zN
 	inv_tb := (1.0 / (top - bottom))
 	inv_nf := (1.0 / (zNear - zFar))
 	n2 := (zNear + zNear)
-	V4MakeFromElems(&result.Col0, (n2 * inv_rl), 0.0, 0.0, 0.0)
-	V4MakeFromElems(&result.Col1, 0.0, (n2 * inv_tb), 0.0, 0.0)
-	V4MakeFromElems(&result.Col2, (sum_rl * inv_rl), (sum_tb * inv_tb), (sum_nf * inv_nf), -1.0)
-	V4MakeFromElems(&result.Col3, 0.0, 0.0, ((n2 * inv_nf) * zFar), 0.0)
+
+	result[m4col0+x] = (n2 * inv_rl)
+	result[m4col0+y] = 0.0
+	result[m4col0+z] = 0.0
+	result[m4col0+w] = 0.0
+
+	result[m4col1+x] = 0.0
+	result[m4col1+y] = (n2 * inv_tb)
+	result[m4col1+z] = 0.0
+	result[m4col1+w] = 0.0
+
+	result[m4col2+x] = (sum_rl * inv_rl)
+	result[m4col2+y] = (sum_tb * inv_tb)
+	result[m4col2+z] = (sum_nf * inv_nf)
+	result[m4col2+w] = -1.0
+
+	result[m4col3+x] = 0.0
+	result[m4col3+y] = 0.0
+	result[m4col3+z] = ((n2 * inv_nf) * zFar)
+	result[m4col3+w] = 0.0
 }
 
-func (result *Matrix4) MakeOrthographic(result *Matrix4, left, right, bottom, top, zNear, zFar float32) {
+func (result *Matrix4) MakeOrthographic(left, right, bottom, top, zNear, zFar float32) {
 	sum_rl := (right + left)
 	sum_tb := (top + bottom)
 	sum_nf := (zNear + zFar)
 	inv_rl := (1.0 / (right - left))
 	inv_tb := (1.0 / (top - bottom))
 	inv_nf := (1.0 / (zNear - zFar))
-	V4MakeFromElems(&result.Col0, (inv_rl + inv_rl), 0.0, 0.0, 0.0)
-	V4MakeFromElems(&result.Col1, 0.0, (inv_tb + inv_tb), 0.0, 0.0)
-	V4MakeFromElems(&result.Col2, 0.0, 0.0, (inv_nf + inv_nf), 0.0)
-	V4MakeFromElems(&result.Col3, (-sum_rl * inv_rl), (-sum_tb * inv_tb), (sum_nf * inv_nf), 1.0)
+
+	//V4MakeFromElems(&result.Col0, (inv_rl + inv_rl), 0.0, 0.0, 0.0)
+	result[m4col0+x] = (inv_rl + inv_rl)
+	result[m4col0+y] = 0.0
+	result[m4col0+z] = 0.0
+	result[m4col0+w] = 0.0
+
+	//V4MakeFromElems(&result.Col1, 0.0, (inv_tb + inv_tb), 0.0, 0.0)
+	result[m4col1+x] = 0.0
+	result[m4col1+y] = (inv_tb + inv_tb)
+	result[m4col1+z] = 0.0
+	result[m4col1+w] = 0.0
+
+	//V4MakeFromElems(&result.Col2, 0.0, 0.0, (inv_nf + inv_nf), 0.0)
+	result[m4col2+x] = 0.0
+	result[m4col2+y] = 0.0
+	result[m4col2+z] = (inv_nf + inv_nf)
+	result[m4col2+w] = 0.0
+
+	//V4MakeFromElems(&result.Col3, (-sum_rl * inv_rl), (-sum_tb * inv_tb), (sum_nf * inv_nf), 1.0)
+	result[m4col3+x] = (-sum_rl * inv_rl)
+	result[m4col3+y] = (-sum_tb * inv_tb)
+	result[m4col3+z] = (sum_nf * inv_nf)
+	result[m4col3+w] = 1.0
 }
 
-func (result *Matrix4) Select(result, mat0, mat1 *Matrix4, select1 int) {
-	V4Select(&result.Col0, &mat0.Col0, &mat1.Col0, select1)
-	V4Select(&result.Col1, &mat0.Col1, &mat1.Col1, select1)
-	V4Select(&result.Col2, &mat0.Col2, &mat1.Col2, select1)
-	V4Select(&result.Col3, &mat0.Col3, &mat1.Col3, select1)
-}
+func (result *Matrix4) Select(mat0, mat1 *Matrix4, select1 int) {
+	if select1 != 0 {
+		result[m4col0+x] = mat1[m4col0+x]
+		result[m4col0+y] = mat1[m4col0+y]
+		result[m4col0+z] = mat1[m4col0+z]
+		result[m4col0+w] = mat1[m4col0+w]
 
+		result[m4col1+x] = mat1[m4col1+x]
+		result[m4col1+y] = mat1[m4col1+y]
+		result[m4col1+z] = mat1[m4col1+z]
+		result[m4col1+w] = mat1[m4col1+w]
+
+		result[m4col2+x] = mat1[m4col2+x]
+		result[m4col2+y] = mat1[m4col2+y]
+		result[m4col2+z] = mat1[m4col2+z]
+		result[m4col2+w] = mat1[m4col2+w]
+
+	} else {
+		result[m4col0+x] = mat0[m4col0+x]
+		result[m4col0+y] = mat0[m4col0+y]
+		result[m4col0+z] = mat0[m4col0+z]
+		result[m4col0+w] = mat0[m4col0+w]
+
+		result[m4col1+x] = mat0[m4col1+x]
+		result[m4col1+y] = mat0[m4col1+y]
+		result[m4col1+z] = mat0[m4col1+z]
+		result[m4col1+w] = mat0[m4col1+w]
+
+		result[m4col2+x] = mat0[m4col2+x]
+		result[m4col2+y] = mat0[m4col2+y]
+		result[m4col2+z] = mat0[m4col2+z]
+		result[m4col2+w] = mat0[m4col2+w]
+
+	}
+}
 
 //Transform3
-*/
 const (
 	t3col0 = 0
 	t3col1 = 3
@@ -1678,55 +1773,117 @@ func (result *Transform3) OrthoInverseSelf() {
 	result.OrthoInverse(&tmp)
 }
 
-/*
-func T3AbsPerElem(result, tfrm *Transform3) {
-	V3AbsPerElem(&result.Col0, &tfrm.Col0)
-	V3AbsPerElem(&result.Col1, &tfrm.Col1)
-	V3AbsPerElem(&result.Col2, &tfrm.Col2)
-	V3AbsPerElem(&result.Col3, &tfrm.Col3)
+func (result *Transform3) AbsPerElem(tfrm *Transform3) {
+	result[t3col0+x] = abs(tfrm[t3col0+x])
+	result[t3col0+y] = abs(tfrm[t3col0+y])
+	result[t3col0+z] = abs(tfrm[t3col0+z])
+
+	result[t3col1+x] = abs(tfrm[t3col1+x])
+	result[t3col1+y] = abs(tfrm[t3col1+y])
+	result[t3col1+z] = abs(tfrm[t3col1+z])
+
+	result[t3col2+x] = abs(tfrm[t3col2+x])
+	result[t3col2+y] = abs(tfrm[t3col2+y])
+	result[t3col2+z] = abs(tfrm[t3col2+z])
+
+	result[t3col3+x] = abs(tfrm[t3col3+x])
+	result[t3col3+y] = abs(tfrm[t3col3+y])
+	result[t3col3+z] = abs(tfrm[t3col3+z])
 }
 
-func T3MulV3(result *Vector3, tfrm *Transform3, vec *Vector3) {
-	tmpX := ((tfrm.Col0.X * vec.X) + (tfrm.Col1.X * vec.Y)) + (tfrm.Col2.X * vec.Z)
-	tmpY := ((tfrm.Col0.Y * vec.X) + (tfrm.Col1.Y * vec.Y)) + (tfrm.Col2.Y * vec.Z)
-	tmpZ := ((tfrm.Col0.Z * vec.X) + (tfrm.Col1.Z * vec.Y)) + (tfrm.Col2.Z * vec.Z)
-	V3MakeFromElems(result, tmpX, tmpY, tmpZ)
+func (result *Vector3) MulT3(tfrm *Transform3, vec *Vector3) {
+	result[x] = ((tfrm[t3col0+x] * vec[x]) + (tfrm[t3col1+x] * vec[y])) + (tfrm[t3col2+x] * vec[z])
+	result[y] = ((tfrm[t3col0+y] * vec[x]) + (tfrm[t3col1+y] * vec[y])) + (tfrm[t3col2+y] * vec[z])
+	result[z] = ((tfrm[t3col0+z] * vec[x]) + (tfrm[t3col1+z] * vec[y])) + (tfrm[t3col2+z] * vec[z])
 }
 
-func T3MulP3(result *Point3, tfrm *Transform3, pnt *Point3) {
-	tmpX := ((((tfrm.Col0.X * pnt.X) + (tfrm.Col1.X * pnt.Y)) + (tfrm.Col2.X * pnt.Z)) + tfrm.Col3.X)
-	tmpY := ((((tfrm.Col0.Y * pnt.X) + (tfrm.Col1.Y * pnt.Y)) + (tfrm.Col2.Y * pnt.Z)) + tfrm.Col3.Y)
-	tmpZ := ((((tfrm.Col0.Z * pnt.X) + (tfrm.Col1.Z * pnt.Y)) + (tfrm.Col2.Z * pnt.Z)) + tfrm.Col3.Z)
-	P3MakeFromElems(result, tmpX, tmpY, tmpZ)
+func (result *Vector3) MulT3Self(tfrm *Transform3) {
+	tmp := *result
+	result.MulT3(tfrm, &tmp)
 }
 
-func T3Mul(result, tfrm0, tfrm1 *Transform3) {
-	var tmpResult Transform3
-	var tmpP3_0, tmpP3_1 Point3
-	T3MulV3(&tmpResult.Col0, tfrm0, &tfrm1.Col0)
-	T3MulV3(&tmpResult.Col1, tfrm0, &tfrm1.Col1)
-	T3MulV3(&tmpResult.Col2, tfrm0, &tfrm1.Col2)
-	P3MakeFromV3(&tmpP3_0, &tfrm1.Col3)
-	T3MulP3(&tmpP3_1, tfrm0, &tmpP3_0)
-	V3MakeFromP3(&tmpResult.Col3, &tmpP3_1)
-	T3Copy(result, &tmpResult)
+func (result *Point3) MulT3(tfrm *Transform3, pnt *Point3) {
+	result[x] = ((((tfrm[t3col0+x] * pnt[x]) + (tfrm[t3col1+x] * pnt[y])) + (tfrm[t3col2+x] * pnt[z])) + tfrm[t3col3+x])
+	result[y] = ((((tfrm[t3col0+y] * pnt[x]) + (tfrm[t3col1+y] * pnt[y])) + (tfrm[t3col2+y] * pnt[z])) + tfrm[t3col3+y])
+	result[z] = ((((tfrm[t3col0+z] * pnt[x]) + (tfrm[t3col1+z] * pnt[y])) + (tfrm[t3col2+z] * pnt[z])) + tfrm[t3col3+z])
 }
 
-func T3MulPerElem(result, tfrm0, tfrm1 *Transform3) {
-	V3MulPerElem(&result.Col0, &tfrm0.Col0, &tfrm1.Col0)
-	V3MulPerElem(&result.Col1, &tfrm0.Col1, &tfrm1.Col1)
-	V3MulPerElem(&result.Col2, &tfrm0.Col2, &tfrm1.Col2)
-	V3MulPerElem(&result.Col3, &tfrm0.Col3, &tfrm1.Col3)
+func (result *Point3) MulT3Self(tfrm *Transform3) {
+	tmp := *result
+
+	result.MulT3(tfrm, &tmp)
 }
 
-func T3MakeIdentity(result *Transform3) {
-	V3MakeXAxis(&result.Col0)
-	V3MakeYAxis(&result.Col1)
-	V3MakeZAxis(&result.Col2)
-	V3MakeFromScalar(&result.Col3, 0.0)
+func (result *Transform3) Mul(tfrm0, tfrm1 *Transform3) {
+
+	result[t3col0+x] = ((tfrm0[t3col0+x] * tfrm1[t3col0+x]) + (tfrm0[t3col1+x] * tfrm1[t3col0+y])) + (tfrm0[t3col2+x] * tfrm1[t3col0+z])
+	result[t3col0+y] = ((tfrm0[t3col0+y] * tfrm1[t3col0+x]) + (tfrm0[t3col1+y] * tfrm1[t3col0+y])) + (tfrm0[t3col2+y] * tfrm1[t3col0+z])
+	result[t3col0+z] = ((tfrm0[t3col0+z] * tfrm1[t3col0+x]) + (tfrm0[t3col1+z] * tfrm1[t3col0+y])) + (tfrm0[t3col2+z] * tfrm1[t3col0+z])
+
+	result[t3col1+x] = ((tfrm0[t3col0+x] * tfrm1[t3col1+x]) + (tfrm0[t3col1+x] * tfrm1[t3col1+y])) + (tfrm0[t3col2+x] * tfrm1[t3col1+z])
+	result[t3col1+y] = ((tfrm0[t3col0+y] * tfrm1[t3col1+x]) + (tfrm0[t3col1+y] * tfrm1[t3col1+y])) + (tfrm0[t3col2+y] * tfrm1[t3col1+z])
+	result[t3col1+z] = ((tfrm0[t3col0+z] * tfrm1[t3col1+x]) + (tfrm0[t3col1+z] * tfrm1[t3col1+y])) + (tfrm0[t3col2+z] * tfrm1[t3col1+z])
+
+	result[t3col2+x] = ((tfrm0[t3col0+x] * tfrm1[t3col2+x]) + (tfrm0[t3col1+x] * tfrm1[t3col2+y])) + (tfrm0[t3col2+x] * tfrm1[t3col2+z])
+	result[t3col2+y] = ((tfrm0[t3col0+y] * tfrm1[t3col2+x]) + (tfrm0[t3col1+y] * tfrm1[t3col2+y])) + (tfrm0[t3col2+y] * tfrm1[t3col2+z])
+	result[t3col2+z] = ((tfrm0[t3col0+z] * tfrm1[t3col2+x]) + (tfrm0[t3col1+z] * tfrm1[t3col2+y])) + (tfrm0[t3col2+z] * tfrm1[t3col2+z])
+
+	result[t3col3+x] = ((((tfrm0[t3col0+x] * tfrm1[t3col3+x]) + (tfrm0[t3col1+x] * tfrm1[t3col3+y])) + (tfrm0[t3col2+x] * tfrm1[t3col3+z])) + tfrm0[t3col3+x])
+	result[t3col3+y] = ((((tfrm0[t3col0+y] * tfrm1[t3col3+x]) + (tfrm0[t3col1+y] * tfrm1[t3col3+y])) + (tfrm0[t3col2+y] * tfrm1[t3col3+z])) + tfrm0[t3col3+y])
+	result[t3col3+z] = ((((tfrm0[t3col0+z] * tfrm1[t3col3+x]) + (tfrm0[t3col1+z] * tfrm1[t3col3+y])) + (tfrm0[t3col2+z] * tfrm1[t3col3+z])) + tfrm0[t3col3+z])
+
 }
 
-*/
+func (result *Transform3) MulSelf(tfrm *Transform3) {
+	tmp := *result
+	result.Mul(&tmp, tfrm)
+}
+
+func (result *Transform3) MulPerElem(tfrm0, tfrm1 *Transform3) {
+	result[t3col0+x] = tfrm0[t3col0+x] * tfrm1[t3col0+x]
+	result[t3col0+y] = tfrm0[t3col0+y] * tfrm1[t3col0+y]
+	result[t3col0+z] = tfrm0[t3col0+z] * tfrm1[t3col0+z]
+
+	result[t3col1+x] = tfrm0[t3col1+x] * tfrm1[t3col1+x]
+	result[t3col1+y] = tfrm0[t3col1+y] * tfrm1[t3col1+y]
+	result[t3col1+z] = tfrm0[t3col1+z] * tfrm1[t3col1+z]
+
+	result[t3col2+x] = tfrm0[t3col2+x] * tfrm1[t3col2+x]
+	result[t3col2+y] = tfrm0[t3col2+y] * tfrm1[t3col2+y]
+	result[t3col2+z] = tfrm0[t3col2+z] * tfrm1[t3col2+z]
+
+	result[t3col3+x] = tfrm0[t3col3+x] * tfrm1[t3col3+x]
+	result[t3col3+y] = tfrm0[t3col3+y] * tfrm1[t3col3+y]
+	result[t3col3+z] = tfrm0[t3col3+z] * tfrm1[t3col3+z]
+}
+
+func (result *Transform3) MulPerElemSelf(tfrm *Transform3) {
+	result.MulPerElem(result, tfrm)
+}
+
+func (result *Transform3) MakeIdentity() {
+	//x-axis
+	result[t3col0+x] = 1.0
+	result[t3col0+y] = 0.0
+	result[t3col0+z] = 0.0
+
+	//y-axis
+	result[t3col1+x] = 0.0
+	result[t3col1+y] = 1.0
+	result[t3col1+z] = 0.0
+
+	//z-axis
+	result[t3col2+x] = 0.0
+	result[t3col2+y] = 0.0
+	result[t3col2+z] = 1.0
+
+	//w-axis
+	result[t3col3+x] = 0.0
+	result[t3col3+y] = 0.0
+	result[t3col3+z] = 0.0
+
+}
+
 func (t *Transform3) SetUpper3x3(m *Matrix3) {
 	t[t3col0+x] = m[m3col0+x]
 	t[t3col0+y] = m[m3col0+y]
@@ -1761,66 +1918,140 @@ func (t *Transform3) SetTranslation(translateVec *Vector3) {
 	t[t3col3+z] = translateVec[z]
 }
 
-/*
-
-func T3GetTranslation(result *Vector3, tfrm *Transform3) {
-	V3Copy(result, &tfrm.Col3)
+func (tfrm *Transform3) Translation(result *Vector3) {
+	result[x] = tfrm[t3col3+x]
+	result[y] = tfrm[t3col3+y]
+	result[z] = tfrm[t3col3+z]
 }
 
-func (t *Transform3) Translation(result *Vector3) {
-	T3GetTranslation(result, t)
-}
-
-func T3MakeRotationX(result *Transform3, radians float32) {
+func (result *Transform3) MakeRotationX(radians float32) {
 	s := sin(radians)
 	c := cos(radians)
-	V3MakeXAxis(&result.Col0)
-	V3MakeFromElems(&result.Col1, 0.0, c, s)
-	V3MakeFromElems(&result.Col2, 0.0, -s, c)
-	V3MakeFromScalar(&result.Col3, 0.0)
+
+	result[t3col0+x] = 1.0
+	result[t3col0+y] = 0.0
+	result[t3col0+z] = 0.0
+
+	result[t3col1+x] = 0.0
+	result[t3col1+y] = c
+	result[t3col1+z] = s
+
+	result[t3col1+x] = 0.0
+	result[t3col1+y] = -s
+	result[t3col1+z] = c
+
+	result[t3col2+x] = 0
+	result[t3col2+y] = 0
+	result[t3col2+z] = 0
+
 }
 
-func T3MakeRotationY(result *Transform3, radians float32) {
+func (result *Transform3) MakeRotationY(radians float32) {
 	s := sin(radians)
 	c := cos(radians)
-	V3MakeFromElems(&result.Col0, c, 0.0, -s)
-	V3MakeYAxis(&result.Col1)
-	V3MakeFromElems(&result.Col2, s, 0.0, c)
-	V3MakeFromScalar(&result.Col3, 0.0)
+
+	result[t3col0+x] = c
+	result[t3col0+y] = 0.0
+	result[t3col0+z] = -s
+
+	//y-axis
+	result[t3col1+x] = 0.0
+	result[t3col1+y] = 1.0
+	result[t3col1+z] = 0.0
+
+	result[t3col2+x] = s
+	result[t3col2+y] = 0.0
+	result[t3col2+z] = c
+
+	//w-axis
+	result[t3col3+x] = 0.0
+	result[t3col3+y] = 0.0
+	result[t3col3+z] = 0.0
+
 }
 
-func T3MakeRotationZ(result *Transform3, radians float32) {
+func (result *Transform3) MakeRotationZ(radians float32) {
 	s := sin(radians)
 	c := cos(radians)
-	V3MakeFromElems(&result.Col0, c, s, 0.0)
-	V3MakeFromElems(&result.Col1, -s, c, 0.0)
-	V3MakeZAxis(&result.Col2)
-	V3MakeFromScalar(&result.Col3, 0.0)
+
+	result[t3col0+x] = c
+	result[t3col0+y] = s
+	result[t3col0+z] = 0.0
+
+	result[t3col1+x] = -s
+	result[t3col1+y] = c
+	result[t3col1+z] = 0.0
+
+	//z-axis
+	result[t3col2+x] = 0.0
+	result[t3col2+y] = 0.0
+	result[t3col2+z] = 1.0
+
+	//w-axis
+	result[t3col3+x] = 0.0
+	result[t3col3+y] = 0.0
+	result[t3col3+z] = 0.0
+
 }
 
-func T3MakeRotationZYX(result *Transform3, radiansXYZ *Vector3) {
-	sX := sin(radiansXYZ.X)
-	cX := cos(radiansXYZ.X)
-	sY := sin(radiansXYZ.Y)
-	cY := cos(radiansXYZ.Y)
-	sZ := sin(radiansXYZ.Z)
-	cZ := cos(radiansXYZ.Z)
+func (result *Transform3) MakeRotationZYX(radiansXYZ *Vector3) {
+	sX := sin(radiansXYZ[x])
+	cX := cos(radiansXYZ[x])
+	sY := sin(radiansXYZ[y])
+	cY := cos(radiansXYZ[y])
+	sZ := sin(radiansXYZ[z])
+	cZ := cos(radiansXYZ[z])
 	tmp0 := (cZ * sY)
 	tmp1 := (sZ * sY)
-	V3MakeFromElems(&result.Col0, (cZ * cY), (sZ * cY), -sY)
-	V3MakeFromElems(&result.Col1, ((tmp0 * sX) - (sZ * cX)), ((tmp1 * sX) + (cZ * cX)), (cY * sX))
-	V3MakeFromElems(&result.Col2, ((tmp0 * cX) + (sZ * sX)), ((tmp1 * cX) - (cZ * sX)), (cY * cX))
-	V3MakeFromScalar(&result.Col3, 0.0)
+
+	result[t3col0+x] = (cZ * cY)
+	result[t3col0+y] = (sZ * cY)
+	result[t3col0+z] = -sY
+
+	result[t3col1+x] = ((tmp0 * sX) - (sZ * cX))
+	result[t3col1+y] = ((tmp1 * sX) + (cZ * cX))
+	result[t3col1+z] = (cY * sX)
+
+	result[t3col2+x] = ((tmp0 * cX) + (sZ * sX))
+	result[t3col2+y] = ((tmp1 * cX) - (cZ * sX))
+	result[t3col2+z] = (cY * cX)
+
+	//w-axis
+	result[t3col3+x] = 0.0
+	result[t3col3+y] = 0.0
+	result[t3col3+z] = 0.0
+
 }
 
-func T3MakeRotationAxis(result *Transform3, radians float32, unitVec *Vector3) {
-	var tmpM3_0 Matrix3
-	var tmpV3_0 Vector3
-	M3MakeRotationAxis(&tmpM3_0, radians, unitVec)
-	V3MakeFromScalar(&tmpV3_0, 0.0)
-	T3MakeFromM3V3(result, &tmpM3_0, &tmpV3_0)
+func (result *Transform3) MakeRotationAxis(radians float32, unitVec *Vector3) {
+	s := sin(radians)
+	c := cos(radians)
+	X := unitVec[x]
+	Y := unitVec[y]
+	Z := unitVec[z]
+	xy := X * Y
+	yz := Y * Z
+	zx := Z * X
+	oneMinusC := 1.0 - c
+
+	result[t3col0+x] = (((X * X) * oneMinusC) + c)
+	result[t3col0+y] = ((xy * oneMinusC) + (Z * s))
+	result[t3col0+z] = ((zx * oneMinusC) - (Y * s))
+
+	result[t3col1+x] = ((xy * oneMinusC) - (Z * s))
+	result[t3col1+y] = (((Y * Y) * oneMinusC) + c)
+	result[t3col1+z] = ((yz * oneMinusC) + (X * s))
+
+	result[t3col2+x] = ((zx * oneMinusC) + (Y * s))
+	result[t3col2+y] = ((yz * oneMinusC) - (X * s))
+	result[t3col2+z] = (((Z * Z) * oneMinusC) + c)
+
+	//w-axis
+	result[t3col3+x] = 0.0
+	result[t3col3+y] = 0.0
+	result[t3col3+z] = 0.0
+
 }
-*/
 
 func (result *Transform3) MakeRotationQ(unitQuat *Quaternion) {
 	var tmpM3 Matrix3
@@ -1829,36 +2060,47 @@ func (result *Transform3) MakeRotationQ(unitQuat *Quaternion) {
 	result.MakeFromM3V3(&tmpM3, &Vector3{0, 0, 0})
 }
 
-/*
-func T3MakeScale(result *Transform3, scaleVec *Vector3) {
-	V3MakeFromElems(&result.Col0, scaleVec.X, 0.0, 0.0)
-	V3MakeFromElems(&result.Col1, 0.0, scaleVec.Y, 0.0)
-	V3MakeFromElems(&result.Col2, 0.0, 0.0, scaleVec.Z)
-	V3MakeFromScalar(&result.Col3, 0.0)
+func (result *Transform3) MakeScale(scaleVec *Vector3) {
+	result[t3col0+x] = scaleVec[x]
+	result[t3col0+y] = 0.0
+	result[t3col0+z] = 0.0
+
+	result[t3col1+x] = 0.0
+	result[t3col1+y] = scaleVec[y]
+	result[t3col1+z] = 0.0
+
+	result[t3col2+x] = 0.0
+	result[t3col2+y] = 0.0
+	result[t3col2+z] = scaleVec[z]
+
+	result[t3col3+x] = 0.0
+	result[t3col3+y] = 0.0
+	result[t3col3+z] = 0.0
 }
 
-func T3AppendScale(result, tfrm *Transform3, scaleVec *Vector3) {
+/*
+func (result *Transform3) AppendScale(result, tfrm *Transform3, scaleVec *Vector3) {
 	V3ScalarMul(&result.Col0, &tfrm.Col0, scaleVec.X)
 	V3ScalarMul(&result.Col1, &tfrm.Col1, scaleVec.Y)
 	V3ScalarMul(&result.Col2, &tfrm.Col2, scaleVec.Z)
 	V3Copy(&result.Col3, &tfrm.Col3)
 }
 
-func T3PrependScale(result *Transform3, scaleVec *Vector3, tfrm *Transform3) {
+func (result *Transform3) PrependScale(result *Transform3, scaleVec *Vector3, tfrm *Transform3) {
 	V3MulPerElem(&result.Col0, &tfrm.Col0, scaleVec)
 	V3MulPerElem(&result.Col1, &tfrm.Col1, scaleVec)
 	V3MulPerElem(&result.Col2, &tfrm.Col2, scaleVec)
 	V3MulPerElem(&result.Col3, &tfrm.Col3, scaleVec)
 }
 
-func T3MakeTranslation(result *Transform3, translateVec *Vector3) {
+func (result *Transform3) MakeTranslation(result *Transform3, translateVec *Vector3) {
 	V3MakeXAxis(&result.Col0)
 	V3MakeYAxis(&result.Col1)
 	V3MakeZAxis(&result.Col2)
 	V3Copy(&result.Col3, translateVec)
 }
 
-func T3Select(result, tfrm0, tfrm1 *Transform3, select1 int) {
+func (result *Transform3) Select(result, tfrm0, tfrm1 *Transform3, select1 int) {
 	V3Select(&result.Col0, &tfrm0.Col0, &tfrm1.Col0, select1)
 	V3Select(&result.Col1, &tfrm0.Col1, &tfrm1.Col1, select1)
 	V3Select(&result.Col2, &tfrm0.Col2, &tfrm1.Col2, select1)
