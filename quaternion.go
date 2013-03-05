@@ -6,64 +6,124 @@
 
 package vmath
 
-/*
-func QCopy(result, quat *Quat) {
-	result.X = quat.X
-	result.Y = quat.Y
-	result.Z = quat.Z
-	result.W = quat.W
+func (result *Quaternion) MakeFromM3(tfrm *Matrix3) {
+	xx := tfrm[t3col0+x]
+	yx := tfrm[t3col0+y]
+	zx := tfrm[t3col0+z]
+	xy := tfrm[t3col1+x]
+	yy := tfrm[t3col1+y]
+	zy := tfrm[t3col1+z]
+	xz := tfrm[t3col2+x]
+	yz := tfrm[t3col2+y]
+	zz := tfrm[t3col2+z]
+
+	trace := ((xx + yy) + zz)
+
+	negTrace := (trace < 0.0)
+	ZgtX := zz > xx
+	ZgtY := zz > yy
+	YgtX := yy > xx
+	largestXorY := (!ZgtX || !ZgtY) && negTrace
+	largestYorZ := (YgtX || ZgtX) && negTrace
+	largestZorX := (ZgtY || !YgtX) && negTrace
+
+	if largestXorY {
+		zz = -zz
+		xy = -xy
+	}
+	if largestYorZ {
+		xx = -xx
+		yz = -yz
+	}
+	if largestZorX {
+		yy = -yy
+		zx = -zx
+	}
+
+	radicand := (((xx + yy) + zz) + 1.0)
+	scale := (0.5 * (1.0 / sqrt(radicand)))
+
+	tmpx := ((zy - yz) * scale)
+	tmpy := ((xz - zx) * scale)
+	tmpz := ((yx - xy) * scale)
+	tmpw := (radicand * scale)
+	qx := tmpx
+	qy := tmpy
+	qz := tmpz
+	qw := tmpw
+
+	if largestXorY {
+		qx = tmpw
+		qy = tmpz
+		qz = tmpy
+		qw = tmpx
+	}
+	if largestYorZ {
+		tmpx = qx
+		tmpz = qz
+		qx = qy
+		qy = tmpx
+		qz = qw
+		qw = tmpz
+	}
+
+	result[x] = qx
+	result[y] = qy
+	result[z] = qz
+	result[w] = qw
 }
 
-func QMakeFromElems(result *Quat, x, y, z, w float32) {
-	result.X = x
-	result.Y = y
-	result.Z = z
-	result.W = w
+func (result *Quaternion) MakeFromV3Scalar(xyz *Vector3, W float32) {
+	result[x] = xyz[x]
+	result[y] = xyz[y]
+	result[z] = xyz[z]
+	result[w] = W
 }
 
-func QMakeFromV3Scalar(result *Quat, xyz *Vector3, w float32) {
-	result.SetXYZ(xyz)
-	result.W = w
+func (result *Quaternion) MakeFromV4(vec *Vector4) {
+	result[x] = vec[x]
+	result[y] = vec[y]
+	result[z] = vec[z]
+	result[w] = vec[w]
 }
 
-func QMakeFromV4(result *Quat, vec *Vector4) {
-	result.X = vec.X
-	result.Y = vec.Y
-	result.Z = vec.Z
-	result.W = vec.W
+func (result *Quaternion) MakeFromScalar(scalar float32) {
+	result[x] = scalar
+	result[y] = scalar
+	result[z] = scalar
+	result[w] = scalar
 }
 
-func QMakeFromScalar(result *Quat, scalar float32) {
-	result.X = scalar
-	result.Y = scalar
-	result.Z = scalar
-	result.W = scalar
+func (result *Quaternion) MakeIdentity() {
+	result[x] = 0.0
+	result[y] = 0.0
+	result[z] = 0.0
+	result[w] = 1.0
 }
 
-func QMakeIdentity(result *Quat) {
-	QMakeFromElems(result, 0.0, 0.0, 0.0, 1.0)
+func (result *Quaternion) Lerp(t float32, quat0, quat1 *Quaternion) {
+	var tmpQ_0, tmpQ_1 Quaternion
+
+	tmpQ_0.Sub(quat1, quat0)
+	tmpQ_1.ScalarMul(&tmpQ_0, t)
+	result.Add(quat0, &tmpQ_1)
 }
 
-func QLerp(result *Quat, t float32, quat0, quat1 *Quat) {
-	var tmpQ_0, tmpQ_1 Quat
-	QSub(&tmpQ_0, quat1, quat0)
-	QScalarMul(&tmpQ_1, &tmpQ_0, t)
-	QAdd(result, quat0, &tmpQ_1)
+func (result *Quaternion) LerpTo(t float32, quatTo *Quaternion) {
+	tmp := *result
+	result.Lerp(t, &tmp, quatTo)
 }
 
-func (q *Quat) Lerp(t float32, quatTo *Quat) {
-	QLerp(q, t, q, quatTo)
-}
-
-func QSlerp(result *Quat, t float32, unitQuat0, unitQuat1 *Quat) {
-	var start, tmpQ_0, tmpQ_1 Quat
+func (result *Quaternion) Slerp(t float32, unitQuat0, unitQuat1 *Quaternion) {
+	var start, tmpQ_0, tmpQ_1 Quaternion
 	var scale0, scale1 float32
-	cosAngle := QDot(unitQuat0, unitQuat1)
+
+	cosAngle := unitQuat0.Dot(unitQuat1)
 	if cosAngle < 0.0 {
 		cosAngle = -cosAngle
-		QNeg(&start, unitQuat0)
+		start.Neg(unitQuat0)
 	} else {
-		QCopy(&start, unitQuat0)
+		copy(start[:], unitQuat0[:])
 	}
 	if cosAngle < g_SLERP_TOL {
 		angle := acos(cosAngle)
@@ -74,207 +134,219 @@ func QSlerp(result *Quat, t float32, unitQuat0, unitQuat1 *Quat) {
 		scale0 = (1.0 - t)
 		scale1 = t
 	}
-	QScalarMul(&tmpQ_0, &start, scale0)
-	QScalarMul(&tmpQ_1, unitQuat1, scale1)
-	QAdd(result, &tmpQ_0, &tmpQ_1)
+	tmpQ_0.ScalarMul(&start, scale0)
+	tmpQ_1.ScalarMul(unitQuat1, scale1)
+	result.Add(&tmpQ_0, &tmpQ_1)
 }
 
-func (q *Quat) Slerp(t float32, quatTo *Quat) {
-	QSlerp(q, t, q, quatTo)
+func (result *Quaternion) SlerpSelf(t float32, unitQuatTo *Quaternion) {
+	tmp := *result
+
+	result.Slerp(t, &tmp, unitQuatTo)
 }
 
-func QSquad(result *Quat, t float32, unitQuat0, unitQuat1, unitQuat2, unitQuat3 *Quat) {
-	var tmp0, tmp1 Quat
-	QSlerp(&tmp0, t, unitQuat0, unitQuat3)
-	QSlerp(&tmp1, t, unitQuat1, unitQuat2)
-	QSlerp(result, (2.0*t)*(1.0-t), &tmp0, &tmp1)
+func (result *Quaternion) Squad(t float32, unitQuat0, unitQuat1, unitQuat2, unitQuat3 *Quaternion) {
+	var tmp0, tmp1 Quaternion
+	tmp0.Slerp(t, unitQuat0, unitQuat3)
+	tmp1.Slerp(t, unitQuat1, unitQuat2)
+	result.Slerp((2.0*t)*(1.0-t), &tmp0, &tmp1)
 }
 
-func (q *Quat) SetXYZ(vec *Vector3) {
-	q.X = vec.X
-	q.Y = vec.Y
-	q.Z = vec.Z
+func (q *Quaternion) SetXYZ(vec *Vector3) {
+	q[x] = vec[x]
+	q[y] = vec[y]
+	q[z] = vec[z]
 }
 
-func (q *Quat) SetElem(index int, value float32) {
-	switch index {
-	case 0:
-		q.X = value
-	case 1:
-		q.Y = value
-	case 2:
-		q.Z = value
-	case 3:
-		q.W = value
-	}
+func (result *Quaternion) Add(quat0, quat1 *Quaternion) {
+	result[x] = quat0[x] + quat1[x]
+	result[y] = quat0[y] + quat1[y]
+	result[z] = quat0[z] + quat1[z]
+	result[w] = quat0[w] + quat1[w]
 }
 
-func (q *Quat) GetElem(index int) float32 {
-	switch index {
-	case 0:
-		return q.X
-	case 1:
-		return q.Y
-	case 2:
-		return q.Z
-	case 3:
-		return q.W
-	}
-	return 0
+func (result *Quaternion) AddToSelf(quat *Quaternion) {
+	result.Add(result, quat)
 }
 
-func QAdd(result, quat0, quat1 *Quat) {
-	result.X = quat0.X + quat1.X
-	result.Y = quat0.Y + quat1.Y
-	result.Z = quat0.Z + quat1.Z
-	result.W = quat0.W + quat1.W
+func (result *Quaternion) Sub(quat0, quat1 *Quaternion) {
+	result[x] = quat0[x] - quat1[x]
+	result[y] = quat0[y] - quat1[y]
+	result[z] = quat0[z] - quat1[z]
+	result[w] = quat0[w] - quat1[w]
 }
 
-func QSub(result, quat0, quat1 *Quat) {
-	result.X = quat0.X - quat1.X
-	result.Y = quat0.Y - quat1.Y
-	result.Z = quat0.Z - quat1.Z
-	result.W = quat0.W - quat1.W
+func (result *Quaternion) SubFromSelf(quat *Quaternion) {
+	result.Sub(result, quat)
 }
 
-func QScalarMul(result, quat *Quat, scalar float32) {
-	result.X = quat.X * scalar
-	result.Y = quat.Y * scalar
-	result.Z = quat.Z * scalar
-	result.W = quat.W * scalar
+func (result *Quaternion) ScalarMul(quat *Quaternion, scalar float32) {
+	result[x] = quat[x] * scalar
+	result[y] = quat[y] * scalar
+	result[z] = quat[z] * scalar
+	result[w] = quat[w] * scalar
 }
 
-func QScalarDiv(result, quat *Quat, scalar float32) {
-	result.X = quat.X / scalar
-	result.Y = quat.Y / scalar
-	result.Z = quat.Z / scalar
-	result.W = quat.W / scalar
+func (result *Quaternion) ScalarMulSelf(scalar float32) {
+	result.ScalarMul(result, scalar)
 }
 
-func QNeg(result, quat *Quat) {
-	result.X = -quat.X
-	result.Y = -quat.Y
-	result.Z = -quat.Z
-	result.W = -quat.W
+func (result *Quaternion) ScalarDiv(quat *Quaternion, scalar float32) {
+	result[x] = quat[x] / scalar
+	result[y] = quat[y] / scalar
+	result[z] = quat[z] / scalar
+	result[w] = quat[w] / scalar
 }
 
-func QDot(quat0, quat1 *Quat) float32 {
-	result := quat0.X * quat1.X
-	result += quat0.Y * quat1.Y
-	result += quat0.Z * quat1.Z
-	result += quat0.W * quat1.W
+func (result *Quaternion) ScalarDivSelf(scalar float32) {
+	result.ScalarDiv(result, scalar)
+}
+
+func (result *Quaternion) Neg(quat *Quaternion) {
+	result[x] = -quat[x]
+	result[y] = -quat[y]
+	result[z] = -quat[z]
+	result[w] = -quat[w]
+}
+
+func (result *Quaternion) NegSelf() {
+	result.Neg(result)
+}
+
+func (q *Quaternion) Dot(quat *Quaternion) float32 {
+	result := q[x] * quat[x]
+	result += q[y] * quat[y]
+	result += q[z] * quat[z]
+	result += q[w] * quat[w]
 	return result
 }
 
-func (q *Quat) Dot(quat1 *Quat) float32 {
-	result := q.X * quat1.X
-	result += q.Y * quat1.Y
-	result += q.Z * quat1.Z
-	result += q.W * quat1.W
+func (q *Quaternion) Norm() float32 {
+	result := q[x] * q[x]
+	result += q[y] * q[y]
+	result += q[z] * q[z]
+	result += q[w] * q[w]
 	return result
 }
 
-func (q *Quat) Norm() float32 {
-	result := q.X * q.X
-	result += q.Y * q.Y
-	result += q.Z * q.Z
-	result += q.W * q.W
-	return result
-}
-
-func (q *Quat) Length() float32 {
+func (q *Quaternion) Length() float32 {
 	return sqrt(q.Norm())
 }
 
-func QNormalize(result, quat *Quat) {
+func (result *Quaternion) Normalize(quat *Quaternion) {
 	lenSqr := quat.Norm()
 	lenInv := 1.0 / sqrt(lenSqr)
-	result.X = quat.X * lenInv
-	result.Y = quat.Y * lenInv
-	result.Z = quat.Z * lenInv
-	result.W = quat.W * lenInv
+	result[x] = quat[x] * lenInv
+	result[y] = quat[y] * lenInv
+	result[z] = quat[z] * lenInv
+	result[w] = quat[w] * lenInv
 }
 
-func (q *Quat) Normalize() {
-	QNormalize(q, q)
+func (result *Quaternion) NormalizeSelf() {
+	result.Normalize(result)
+
 }
 
-func QMakeRotationArc(result *Quat, unitVec0, unitVec1 *Vector3) {
+func (result *Quaternion) MakeRotationArc(unitVec0, unitVec1 *Vector3) {
 	var tmpV3_0, tmpV3_1 Vector3
-	cosHalfAngleX2 := sqrt((2.0 * (1.0 + V3Dot(unitVec0, unitVec1))))
+	cosHalfAngleX2 := sqrt((2.0 * (1.0 + unitVec0.Dot(unitVec1))))
 	recipCosHalfAngleX2 := (1.0 / cosHalfAngleX2)
-	V3Cross(&tmpV3_0, unitVec0, unitVec1)
-	V3ScalarMul(&tmpV3_1, &tmpV3_0, recipCosHalfAngleX2)
-	QMakeFromV3Scalar(result, &tmpV3_1, (cosHalfAngleX2 * 0.5))
+	tmpV3_0.Cross(unitVec0, unitVec1)
+
+	tmpV3_1.ScalarMul(&tmpV3_0, recipCosHalfAngleX2)
+	result.MakeFromV3Scalar(&tmpV3_1, (cosHalfAngleX2 * 0.5))
 }
 
-func QMakeRotationAxis(result *Quat, radians float32, unitVec *Vector3) {
+func (result *Quaternion) MakeRotationAxis(radians float32, unitVec *Vector3) {
 	var tmpV3_0 Vector3
 	angle := radians * 0.5
 	s := sin(angle)
 	c := cos(angle)
-	V3ScalarMul(&tmpV3_0, unitVec, s)
-	QMakeFromV3Scalar(result, &tmpV3_0, c)
+	tmpV3_0.ScalarMul(unitVec, s)
+	result.MakeFromV3Scalar(&tmpV3_0, c)
 }
 
-func QMakeRotationX(result *Quat, radians float32) {
+func (result *Quaternion) MakeRotationX(radians float32) {
 	angle := radians * 0.5
 	s := sin(angle)
 	c := cos(angle)
-	QMakeFromElems(result, s, 0.0, 0.0, c)
+	result[x] = s
+	result[y] = 0.0
+	result[z] = 0.0
+	result[w] = c
 }
 
-func QMakeRotationY(result *Quat, radians float32) {
+func (result *Quaternion) MakeRotationY(radians float32) {
 	angle := radians * 0.5
 	s := sin(angle)
 	c := cos(angle)
-	QMakeFromElems(result, 0.0, s, 0.0, c)
+
+	result[x] = 0.0
+	result[y] = s
+	result[z] = 0.0
+	result[w] = c
+
 }
 
-func QMakeRotationZ(result *Quat, radians float32) {
+func (result *Quaternion) MakeRotationZ(radians float32) {
 	angle := radians * 0.5
 	s := sin(angle)
 	c := cos(angle)
-	QMakeFromElems(result, 0.0, 0.0, s, c)
+
+	result[x] = 0.0
+	result[y] = 0.0
+	result[z] = s
+	result[w] = c
 }
 
-func QMul(result, quat0, quat1 *Quat) {
-	tmpX := (quat0.W * quat1.X) + (quat0.X * quat1.W) + (quat0.Y * quat1.Z) - (quat0.Z * quat1.Y)
-	tmpY := (quat0.W * quat1.Y) + (quat0.Y * quat1.W) + (quat0.Z * quat1.X) - (quat0.X * quat1.Z)
-	tmpZ := (quat0.W * quat1.Z) + (quat0.Z * quat1.W) + (quat0.X * quat1.Y) - (quat0.Y * quat1.X)
-	tmpW := (quat0.W * quat1.W) - (quat0.X * quat1.X) - (quat0.Y * quat1.Y) - (quat0.Z * quat1.Z)
-	QMakeFromElems(result, tmpX, tmpY, tmpZ, tmpW)
+func (result *Quaternion) Mul(quat0, quat1 *Quaternion) {
+	result[x] = (quat0[w] * quat1[x]) + (quat0[x] * quat1[w]) + (quat0[y] * quat1[z]) - (quat0[z] * quat1[y])
+	result[y] = (quat0[w] * quat1[y]) + (quat0[y] * quat1[w]) + (quat0[z] * quat1[x]) - (quat0[x] * quat1[z])
+	result[z] = (quat0[w] * quat1[z]) + (quat0[z] * quat1[w]) + (quat0[x] * quat1[y]) - (quat0[y] * quat1[x])
+	result[w] = (quat0[w] * quat1[w]) - (quat0[x] * quat1[x]) - (quat0[y] * quat1[y]) - (quat0[z] * quat1[z])
 }
 
-func QRotate(result *Vector3, quat *Quat, vec *Vector3) {
-	tmpX := (quat.W * vec.X) + (quat.Y * vec.Z) - (quat.Z * vec.Y)
-	tmpY := (quat.W * vec.Y) + (quat.Z * vec.X) - (quat.X * vec.Z)
-	tmpZ := (quat.W * vec.Z) + (quat.X * vec.Y) - (quat.Y * vec.X)
-	tmpW := (quat.X * vec.X) + (quat.Y * vec.Y) + (quat.Z * vec.Z)
-	result.X = (tmpW * quat.X) + (tmpX * quat.W) - (tmpY * quat.Z) + (tmpZ * quat.Y)
-	result.Y = (tmpW * quat.Y) + (tmpY * quat.W) - (tmpZ * quat.X) + (tmpX * quat.Z)
-	result.Z = (tmpW * quat.Z) + (tmpZ * quat.W) - (tmpX * quat.Y) + (tmpY * quat.X)
+func (result *Quaternion) MulSelf(quat *Quaternion) {
+	tmp := *result
+	result.Mul(&tmp, quat)
+
 }
 
-func QConj(result, quat *Quat) {
-	QMakeFromElems(result, -quat.X, -quat.Y, -quat.Z, quat.W)
+func (result *Vector3) Rotate(quat *Quaternion, vec *Vector3) {
+	tmpX := (quat[w] * vec[x]) + (quat[y] * vec[z]) - (quat[z] * vec[y])
+	tmpY := (quat[w] * vec[y]) + (quat[z] * vec[x]) - (quat[x] * vec[z])
+	tmpZ := (quat[w] * vec[z]) + (quat[x] * vec[y]) - (quat[y] * vec[x])
+	tmpW := (quat[x] * vec[x]) + (quat[y] * vec[y]) + (quat[z] * vec[z])
+	result[x] = (tmpW * quat[x]) + (tmpX * quat[w]) - (tmpY * quat[z]) + (tmpZ * quat[y])
+	result[y] = (tmpW * quat[y]) + (tmpY * quat[w]) - (tmpZ * quat[x]) + (tmpX * quat[z])
+	result[z] = (tmpW * quat[z]) + (tmpZ * quat[w]) - (tmpX * quat[y]) + (tmpY * quat[x])
 }
 
-func (q *Quat) Conjugate() {
-	QConj(q, q)
+func (result *Vector3) RotateSelf(quat *Quaternion) {
+	result.Rotate(quat, result)
 }
 
-func QSelect(result, quat0, quat1 *Quat, select1 int) {
+func (result *Quaternion) Conj(quat *Quaternion) {
+	result[x] = -quat[x]
+	result[y] = -quat[y]
+	result[z] = -quat[z]
+	result[w] = quat[w]
+}
+
+func (result *Quaternion) ConjSelf() {
+	result.Conj(result)
+}
+
+func (result *Quaternion) Select(quat0, quat1 *Quaternion, select1 int) {
 	if select1 != 0 {
-		result.X = quat1.X
-		result.Y = quat1.Y
-		result.Z = quat1.Z
-		result.W = quat1.W
+		result[x] = quat1[x]
+		result[y] = quat1[y]
+		result[z] = quat1[z]
+		result[w] = quat1[w]
 	} else {
-		result.X = quat0.X
-		result.Y = quat0.Y
-		result.Z = quat0.Z
-		result.W = quat0.W
+		result[x] = quat0[x]
+		result[y] = quat0[y]
+		result[z] = quat0[z]
+		result[w] = quat0[w]
 	}
 }
-*/
