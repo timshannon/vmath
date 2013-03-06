@@ -6,6 +6,10 @@
 
 package vmath
 
+import (
+	"unsafe"
+)
+
 const (
 	m3col0 = 0
 	m3col1 = 3
@@ -278,6 +282,9 @@ func (result *Vector3) MulM3Self(mat *Matrix3) {
 }
 
 func (result *Matrix3) Mul(mat0, mat1 *Matrix3) {
+	if unsafe.Pointer(result) == unsafe.Pointer(mat0) || unsafe.Pointer(result) == unsafe.Pointer(mat1) {
+		result = &Matrix3{}
+	}
 	result[m3col0+x] = ((mat0[m3col0+x] * mat1[m3col0+x]) + (mat0[m3col1+x] * mat1[m3col0+y])) + (mat0[m3col2+x] * mat1[m3col0+z])
 	result[m3col0+y] = ((mat0[m3col0+y] * mat1[m3col0+x]) + (mat0[m3col1+y] * mat1[m3col0+y])) + (mat0[m3col2+y] * mat1[m3col0+z])
 	result[m3col0+z] = ((mat0[m3col0+z] * mat1[m3col0+x]) + (mat0[m3col1+z] * mat1[m3col0+y])) + (mat0[m3col2+z] * mat1[m3col0+z])
@@ -383,7 +390,7 @@ func (result *Matrix3) MakeRotationZ(radians float32) {
 	result[m3col2+z] = 1.0
 }
 
-func (result *Matrix3) MakeRotationZYX(radiansXYZ *Vector3) {
+func (result *Matrix3) MakeRotationXYZ(radiansXYZ *Vector3) {
 	sX := sin(radiansXYZ[x])
 	cX := cos(radiansXYZ[x])
 	sY := sin(radiansXYZ[y])
@@ -1256,7 +1263,7 @@ func (result *Matrix4) MakeRotationZ(radians float32) {
 	result[m4col3+w] = 1.0
 }
 
-func (result *Matrix4) MakeRotationZYX(radiansXYZ *Vector3) {
+func (result *Matrix4) MakeRotationXYZ(radiansXYZ *Vector3) {
 	sX := sin(radiansXYZ[x])
 	cX := cos(radiansXYZ[x])
 	sY := sin(radiansXYZ[y])
@@ -2010,7 +2017,7 @@ func (result *Transform3) MakeRotationZ(radians float32) {
 
 }
 
-func (result *Transform3) MakeRotationZYX(radiansXYZ *Vector3) {
+func (result *Transform3) MakeRotationXYZ(radiansXYZ *Vector3) {
 	sX := sin(radiansXYZ[x])
 	cX := cos(radiansXYZ[x])
 	sY := sin(radiansXYZ[y])
