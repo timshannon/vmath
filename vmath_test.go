@@ -5,7 +5,6 @@
 package vmath
 
 import (
-	"fmt"
 	"github.com/timshannon/vectormath"
 	"testing"
 )
@@ -86,13 +85,9 @@ func TestM3Equality(t *testing.T) {
 		}
 	}
 
-	m3IsEqual(t, mat0, othermat0)
-	m3IsEqual(t, mat1, othermat1)
-
 	vectormath.M3Mul(othermat0, othermat0, othermat1)
 	mat0.Mul(mat0, mat1)
 
-	fmt.Println("After")
 	m3IsEqual(t, mat0, othermat0)
 
 }
