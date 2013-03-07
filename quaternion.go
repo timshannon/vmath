@@ -6,6 +6,10 @@
 
 package vmath
 
+import (
+	"unsafe"
+)
+
 func (result *Quaternion) MakeFromM3(tfrm *Matrix3) {
 	xx := tfrm[t3col0+x]
 	yx := tfrm[t3col0+y]
@@ -115,6 +119,10 @@ func (result *Quaternion) LerpTo(t float32, quatTo *Quaternion) {
 }
 
 func (result *Quaternion) Slerp(t float32, unitQuat0, unitQuat1 *Quaternion) {
+	if unsafe.Pointer(result) == unsafe.Pointer(unitQuat0) {
+		result.SlerpSelf(t, unitQuat1)
+		return
+	}
 	var start, tmpQ_0, tmpQ_1 Quaternion
 	var scale0, scale1 float32
 
@@ -300,6 +308,15 @@ func (result *Quaternion) MakeRotationZ(radians float32) {
 }
 
 func (result *Quaternion) Mul(quat0, quat1 *Quaternion) {
+	if unsafe.Pointer(result) == unsafe.Pointer(quat0) {
+		result.MulSelf(quat1)
+		return
+	}
+
+	if unsafe.Pointer(result) == unsafe.Pointer(quat1) {
+		result.MulSelf(quat0)
+		return
+	}
 	result[x] = (quat0[w] * quat1[x]) + (quat0[x] * quat1[w]) + (quat0[y] * quat1[z]) - (quat0[z] * quat1[y])
 	result[y] = (quat0[w] * quat1[y]) + (quat0[y] * quat1[w]) + (quat0[z] * quat1[x]) - (quat0[x] * quat1[z])
 	result[z] = (quat0[w] * quat1[z]) + (quat0[z] * quat1[w]) + (quat0[x] * quat1[y]) - (quat0[y] * quat1[x])

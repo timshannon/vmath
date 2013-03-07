@@ -6,6 +6,10 @@
 
 package vmath
 
+import (
+	"unsafe"
+)
+
 const g_SLERP_TOL = 0.999
 
 //Vector3
@@ -280,6 +284,11 @@ func (result *Vector3) Velocity(start, end *Vector3, elapsedTime float32) {
 }
 
 func (result *Vector3) Lerp(t float32, vec0, vec1 *Vector3) {
+	if unsafe.Pointer(result) == unsafe.Pointer(vec0) {
+		result.LerpSelf(t, vec1)
+		return
+	}
+
 	result.Sub(vec1, vec0)
 	result.ScalarMulSelf(t)
 	result.Add(vec0, result)

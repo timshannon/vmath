@@ -118,6 +118,11 @@ func (mat *Matrix3) Row(result *Vector3, row int) {
 }
 
 func (result *Matrix3) Transpose(mat *Matrix3) {
+	if unsafe.Pointer(result) == unsafe.Pointer(mat) {
+		result.TransposeSelf()
+		return
+	}
+
 	result[m3col0+x] = mat[m3col0+x]
 	result[m3col0+y] = mat[m3col1+x]
 	result[m3col0+z] = mat[m3col2+x]
@@ -271,6 +276,11 @@ func (result *Matrix3) ScalarMulSelf(scalar float32) {
 }
 
 func (result *Vector3) MulM3(vec *Vector3, mat *Matrix3) {
+	if unsafe.Pointer(result) == unsafe.Pointer(vec) {
+		result.MulM3Self(mat)
+		return
+	}
+
 	result[x] = ((mat[m3col0+x] * vec[x]) + (mat[m3col1+x] * vec[y])) + (mat[m3col2+x] * vec[z])
 	result[y] = ((mat[m3col0+y] * vec[x]) + (mat[m3col1+y] * vec[y])) + (mat[m3col2+y] * vec[z])
 	result[z] = ((mat[m3col0+z] * vec[x]) + (mat[m3col1+z] * vec[y])) + (mat[m3col2+z] * vec[z])
@@ -531,10 +541,6 @@ func (result *Matrix3) Select(mat0, mat1 *Matrix3, select1 int) {
 
 }
 
-func (result *Matrix3) SelectSelf(mat *Matrix3, select1 int) {
-	result.Select(result, mat, select1)
-}
-
 //Matrix 4
 const (
 	m4col0 = 0
@@ -687,6 +693,11 @@ func (mat *Matrix4) Row(result *Vector4, row int) {
 }
 
 func (result *Matrix4) Transpose(mat *Matrix4) {
+	if unsafe.Pointer(result) == unsafe.Pointer(mat) {
+		result.TransposeSelf()
+		return
+	}
+
 	result[m4col0+x] = mat[m4col0+x]
 	result[m4col0+y] = mat[m4col1+x]
 	result[m4col0+z] = mat[m4col2+x]
@@ -1010,6 +1021,10 @@ func (result *Matrix4) ScalarMulSelf(scalar float32) {
 }
 
 func (result *Vector4) MulM4(vec *Vector4, mat *Matrix4) {
+	if unsafe.Pointer(result) == unsafe.Pointer(vec) {
+		result.MulM4Self(mat)
+		return
+	}
 	result[x] = (((mat[m4col0+x] * vec[x]) + (mat[m4col1+x] * vec[y])) + (mat[m4col2+x] * vec[z])) + (mat[m4col3+x] * vec[w])
 	result[y] = (((mat[m4col0+y] * vec[x]) + (mat[m4col1+y] * vec[y])) + (mat[m4col2+y] * vec[z])) + (mat[m4col3+y] * vec[w])
 	result[z] = (((mat[m4col0+z] * vec[x]) + (mat[m4col1+z] * vec[y])) + (mat[m4col2+z] * vec[z])) + (mat[m4col3+z] * vec[w])
@@ -1037,25 +1052,30 @@ func (result *Vector4) MulM4P3(mat *Matrix4, pnt *Point3) {
 }
 
 func (result *Matrix4) Mul(mat0, mat1 *Matrix4) {
-	//M4MulV4(&tmpResult.Col0, mat0, &mat1.Col0)
+	if unsafe.Pointer(result) == unsafe.Pointer(mat0) {
+		result.MulSelf(mat1)
+		return
+	}
+
+	if unsafe.Pointer(result) == unsafe.Pointer(mat1) {
+		result.MulSelf(mat0)
+		return
+	}
 	result[m4col0+x] = (((mat0[m4col0+x] * mat1[m4col0+x]) + (mat0[m4col1+x] * mat1[m4col0+y])) + (mat0[m4col2+x] * mat1[m4col0+z])) + (mat0[m4col3+x] * mat1[m4col0+w])
 	result[m4col0+y] = (((mat0[m4col0+y] * mat1[m4col0+x]) + (mat0[m4col1+y] * mat1[m4col0+y])) + (mat0[m4col2+y] * mat1[m4col0+z])) + (mat0[m4col3+y] * mat1[m4col0+w])
 	result[m4col0+z] = (((mat0[m4col0+z] * mat1[m4col0+x]) + (mat0[m4col1+z] * mat1[m4col0+y])) + (mat0[m4col2+z] * mat1[m4col0+z])) + (mat0[m4col3+z] * mat1[m4col0+w])
 	result[m4col0+w] = (((mat0[m4col0+w] * mat1[m4col0+x]) + (mat0[m4col1+w] * mat1[m4col0+y])) + (mat0[m4col2+w] * mat1[m4col0+z])) + (mat0[m4col3+w] * mat1[m4col0+w])
 
-	//M4MulV4(&tmpResult.Col1, mat0, &mat1.Col1)
 	result[m4col1+x] = (((mat0[m4col0+x] * mat1[m4col1+x]) + (mat0[m4col1+x] * mat1[m4col1+y])) + (mat0[m4col2+x] * mat1[m4col1+z])) + (mat0[m4col3+x] * mat1[m4col1+w])
 	result[m4col1+y] = (((mat0[m4col0+y] * mat1[m4col1+x]) + (mat0[m4col1+y] * mat1[m4col1+y])) + (mat0[m4col2+y] * mat1[m4col1+z])) + (mat0[m4col3+y] * mat1[m4col1+w])
 	result[m4col1+z] = (((mat0[m4col0+z] * mat1[m4col1+x]) + (mat0[m4col1+z] * mat1[m4col1+y])) + (mat0[m4col2+z] * mat1[m4col1+z])) + (mat0[m4col3+z] * mat1[m4col1+w])
 	result[m4col1+w] = (((mat0[m4col0+w] * mat1[m4col1+x]) + (mat0[m4col1+w] * mat1[m4col1+y])) + (mat0[m4col2+w] * mat1[m4col1+z])) + (mat0[m4col3+w] * mat1[m4col1+w])
 
-	//M4MulV4(&tmpResult.Col2, mat0, &mat1.Col2)
 	result[m4col2+x] = (((mat0[m4col0+x] * mat1[m4col2+x]) + (mat0[m4col1+x] * mat1[m4col2+y])) + (mat0[m4col2+x] * mat1[m4col2+z])) + (mat0[m4col3+x] * mat1[m4col2+w])
 	result[m4col2+y] = (((mat0[m4col0+y] * mat1[m4col2+x]) + (mat0[m4col1+y] * mat1[m4col2+y])) + (mat0[m4col2+y] * mat1[m4col2+z])) + (mat0[m4col3+y] * mat1[m4col2+w])
 	result[m4col2+z] = (((mat0[m4col0+z] * mat1[m4col2+x]) + (mat0[m4col1+z] * mat1[m4col2+y])) + (mat0[m4col2+z] * mat1[m4col2+z])) + (mat0[m4col3+z] * mat1[m4col2+w])
 	result[m4col2+w] = (((mat0[m4col0+w] * mat1[m4col2+x]) + (mat0[m4col1+w] * mat1[m4col2+y])) + (mat0[m4col2+w] * mat1[m4col2+z])) + (mat0[m4col3+w] * mat1[m4col2+w])
 
-	//M4MulV4(&tmpResult.Col3, mat0, &mat1.Col3)
 	result[m4col3+x] = (((mat0[m4col0+x] * mat1[m4col3+x]) + (mat0[m4col1+x] * mat1[m4col3+y])) + (mat0[m4col2+x] * mat1[m4col3+z])) + (mat0[m4col3+x] * mat1[m4col3+w])
 	result[m4col3+y] = (((mat0[m4col0+y] * mat1[m4col3+x]) + (mat0[m4col1+y] * mat1[m4col3+y])) + (mat0[m4col2+y] * mat1[m4col3+z])) + (mat0[m4col3+y] * mat1[m4col3+w])
 	result[m4col3+z] = (((mat0[m4col0+z] * mat1[m4col3+x]) + (mat0[m4col1+z] * mat1[m4col3+y])) + (mat0[m4col2+z] * mat1[m4col3+z])) + (mat0[m4col3+z] * mat1[m4col3+w])
@@ -1069,19 +1089,20 @@ func (result *Matrix4) MulSelf(mat *Matrix4) {
 }
 
 func (result *Matrix4) MulT3(mat *Matrix4, tfrm *Transform3) {
-	//M4MulV3(&tmpResult.Col0, mat, &tfrm1.Col0)
+	if unsafe.Pointer(result) == unsafe.Pointer(mat) {
+		result.MulT3Self(tfrm)
+		return
+	}
 	result[m4col0+x] = ((mat[m4col0+x] * tfrm[t3col0+x]) + (mat[m4col1+x] * tfrm[t3col0+y])) + (mat[m4col2+x] * tfrm[t3col0+z])
 	result[m4col0+y] = ((mat[m4col0+y] * tfrm[t3col0+x]) + (mat[m4col1+y] * tfrm[t3col0+y])) + (mat[m4col2+y] * tfrm[t3col0+z])
 	result[m4col0+z] = ((mat[m4col0+z] * tfrm[t3col0+x]) + (mat[m4col1+z] * tfrm[t3col0+y])) + (mat[m4col2+z] * tfrm[t3col0+z])
 	result[m4col0+w] = ((mat[m4col0+w] * tfrm[t3col0+x]) + (mat[m4col1+w] * tfrm[t3col0+y])) + (mat[m4col2+w] * tfrm[t3col0+z])
 
-	//M4MulV3(&tmpResult.Col1, mat, &tfrm1.Col1)
 	result[m4col1+x] = ((mat[m4col0+x] * tfrm[t3col1+x]) + (mat[m4col1+x] * tfrm[t3col1+y])) + (mat[m4col2+x] * tfrm[t3col1+z])
 	result[m4col1+y] = ((mat[m4col0+y] * tfrm[t3col1+x]) + (mat[m4col1+y] * tfrm[t3col1+y])) + (mat[m4col2+y] * tfrm[t3col1+z])
 	result[m4col1+z] = ((mat[m4col0+z] * tfrm[t3col1+x]) + (mat[m4col1+z] * tfrm[t3col1+y])) + (mat[m4col2+z] * tfrm[t3col1+z])
 	result[m4col1+w] = ((mat[m4col0+w] * tfrm[t3col1+x]) + (mat[m4col1+w] * tfrm[t3col1+y])) + (mat[m4col2+w] * tfrm[t3col1+z])
 
-	//M4MulV3(&tmpResult.Col2, mat, &tfrm1.Col2)
 	result[m4col2+x] = ((mat[m4col0+x] * tfrm[t3col2+x]) + (mat[m4col1+x] * tfrm[t3col2+y])) + (mat[m4col2+x] * tfrm[t3col2+z])
 	result[m4col2+y] = ((mat[m4col0+y] * tfrm[t3col2+x]) + (mat[m4col1+y] * tfrm[t3col2+y])) + (mat[m4col2+y] * tfrm[t3col2+z])
 	result[m4col2+z] = ((mat[m4col0+z] * tfrm[t3col2+x]) + (mat[m4col1+z] * tfrm[t3col2+y])) + (mat[m4col2+z] * tfrm[t3col2+z])
@@ -1698,6 +1719,10 @@ func (t *Transform3) Row(result *Vector4, row int) {
 }
 
 func (result *Transform3) Inverse(tfrm *Transform3) {
+	if unsafe.Pointer(result) == unsafe.Pointer(tfrm) {
+		result.InverseSelf()
+		return
+	}
 	var tmp0, tmp1, tmp2, tmpV3_3, tmpV3_4, tmpV3_5 Vector3
 	var tfrmCol2 Vector3
 
@@ -1760,6 +1785,10 @@ func (t *Transform3) InverseSelf() {
 }
 
 func (result *Transform3) OrthoInverse(tfrm *Transform3) {
+	if unsafe.Pointer(result) == unsafe.Pointer(tfrm) {
+		result.OrthoInverseSelf()
+		return
+	}
 	var tmpV3_3, tmpV3_4, tmpV3_5 Vector3
 
 	result[t3col0+x] = tfrm[t3col0+x]
@@ -1822,6 +1851,10 @@ func (result *Transform3) AbsPerElem(tfrm *Transform3) {
 }
 
 func (result *Vector3) MulT3(tfrm *Transform3, vec *Vector3) {
+	if unsafe.Pointer(result) == unsafe.Pointer(vec) {
+		result.MulT3Self(tfrm)
+		return
+	}
 	result[x] = ((tfrm[t3col0+x] * vec[x]) + (tfrm[t3col1+x] * vec[y])) + (tfrm[t3col2+x] * vec[z])
 	result[y] = ((tfrm[t3col0+y] * vec[x]) + (tfrm[t3col1+y] * vec[y])) + (tfrm[t3col2+y] * vec[z])
 	result[z] = ((tfrm[t3col0+z] * vec[x]) + (tfrm[t3col1+z] * vec[y])) + (tfrm[t3col2+z] * vec[z])
@@ -1833,6 +1866,10 @@ func (result *Vector3) MulT3Self(tfrm *Transform3) {
 }
 
 func (result *Point3) MulT3(tfrm *Transform3, pnt *Point3) {
+	if unsafe.Pointer(result) == unsafe.Pointer(pnt) {
+		result.MulT3Self(tfrm)
+		return
+	}
 	result[x] = ((((tfrm[t3col0+x] * pnt[x]) + (tfrm[t3col1+x] * pnt[y])) + (tfrm[t3col2+x] * pnt[z])) + tfrm[t3col3+x])
 	result[y] = ((((tfrm[t3col0+y] * pnt[x]) + (tfrm[t3col1+y] * pnt[y])) + (tfrm[t3col2+y] * pnt[z])) + tfrm[t3col3+y])
 	result[z] = ((((tfrm[t3col0+z] * pnt[x]) + (tfrm[t3col1+z] * pnt[y])) + (tfrm[t3col2+z] * pnt[z])) + tfrm[t3col3+z])
@@ -1845,6 +1882,14 @@ func (result *Point3) MulT3Self(tfrm *Transform3) {
 }
 
 func (result *Transform3) Mul(tfrm0, tfrm1 *Transform3) {
+	if unsafe.Pointer(result) == unsafe.Pointer(tfrm0) {
+		result.MulSelf(tfrm1)
+		return
+	}
+	if unsafe.Pointer(result) == unsafe.Pointer(tfrm1) {
+		result.MulSelf(tfrm0)
+		return
+	}
 
 	result[t3col0+x] = ((tfrm0[t3col0+x] * tfrm1[t3col0+x]) + (tfrm0[t3col1+x] * tfrm1[t3col0+y])) + (tfrm0[t3col2+x] * tfrm1[t3col0+z])
 	result[t3col0+y] = ((tfrm0[t3col0+y] * tfrm1[t3col0+x]) + (tfrm0[t3col1+y] * tfrm1[t3col0+y])) + (tfrm0[t3col2+y] * tfrm1[t3col0+z])
@@ -2248,6 +2293,10 @@ func (result *Matrix4) V4Outer(tfrm0, tfrm1 *Vector4) {
 }
 
 func (result *Vector3) RowMulMat3(vec *Vector3, mat *Matrix3) {
+	if unsafe.Pointer(result) == unsafe.Pointer(vec) {
+		result.RowMulMat3Self(mat)
+		return
+	}
 	result[x] = (((vec[x] * mat[m3col0+x]) + (vec[y] * mat[m3col0+y])) + (vec[z] * mat[m3col0+z]))
 	result[y] = (((vec[x] * mat[m3col1+x]) + (vec[y] * mat[m3col1+y])) + (vec[z] * mat[m3col1+z]))
 	result[z] = (((vec[x] * mat[m3col2+x]) + (vec[y] * mat[m3col2+y])) + (vec[z] * mat[m3col2+z]))
@@ -2273,6 +2322,10 @@ func (result *Matrix3) V3CrossMatrix(vec *Vector3) {
 }
 
 func (result *Matrix3) V3CrossMatrixMul(vec *Vector3, mat *Matrix3) {
+	if unsafe.Pointer(result) == unsafe.Pointer(mat) {
+		result.V3CrossMatrixMulSelf(vec)
+		return
+	}
 	result[m3col0+x] = vec[y]*mat[m3col0+z] - vec[z]*mat[m3col0+y]
 	result[m3col0+y] = vec[z]*mat[m3col0+x] - vec[x]*mat[m3col0+z]
 	result[m3col0+z] = vec[x]*mat[m3col0+y] - vec[y]*mat[m3col0+x]
