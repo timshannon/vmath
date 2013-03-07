@@ -282,9 +282,16 @@ func (result *Vector3) MulM3Self(mat *Matrix3) {
 }
 
 func (result *Matrix3) Mul(mat0, mat1 *Matrix3) {
-	if unsafe.Pointer(result) == unsafe.Pointer(mat0) || unsafe.Pointer(result) == unsafe.Pointer(mat1) {
-		result = &Matrix3{}
+	if unsafe.Pointer(result) == unsafe.Pointer(mat0) {
+		result.MulSelf(mat1)
+		return
 	}
+
+	if unsafe.Pointer(result) == unsafe.Pointer(mat1) {
+		result.MulSelf(mat0)
+		return
+	}
+
 	result[m3col0+x] = ((mat0[m3col0+x] * mat1[m3col0+x]) + (mat0[m3col1+x] * mat1[m3col0+y])) + (mat0[m3col2+x] * mat1[m3col0+z])
 	result[m3col0+y] = ((mat0[m3col0+y] * mat1[m3col0+x]) + (mat0[m3col1+y] * mat1[m3col0+y])) + (mat0[m3col2+y] * mat1[m3col0+z])
 	result[m3col0+z] = ((mat0[m3col0+z] * mat1[m3col0+x]) + (mat0[m3col1+z] * mat1[m3col0+y])) + (mat0[m3col2+z] * mat1[m3col0+z])
