@@ -63,6 +63,10 @@ func (result *Matrix3) MakeFromQ(unitQuat *Quaternion) {
 	result[m3col2+z] = ((1.0 - qxqx2) - qyqy2)
 }
 
+func (v *Matrix3) Copy(other *Matrix3) {
+	copy(v[:], other[:])
+}
+
 func (result *Matrix3) MakeFromCols(col0, col1, col2 *Vector3) {
 	result.SetCol(0, col0)
 	result.SetCol(1, col1)
@@ -593,6 +597,10 @@ func (result *Matrix4) MakeFromT3(trns *Transform3) {
 	result[m4col3+z] = trns[t3col3+z]
 	result[m4col3+w] = 1.0
 
+}
+
+func (v *Matrix4) Copy(other *Matrix4) {
+	copy(v[:], other[:])
 }
 
 func (m *Matrix4) SetCol(col int, vec *Vector4) {
@@ -1641,6 +1649,10 @@ func (result *Transform3) MakeFromScalar(scalar float32) {
 	result[t3col3+x] = scalar
 	result[t3col3+y] = scalar
 	result[t3col3+z] = scalar
+}
+
+func (v *Transform3) Copy(other *Transform3) {
+	copy(v[:], other[:])
 }
 
 func (result *Transform3) MakeFromCols(col0, col1, col2, col3 *Vector3) {
