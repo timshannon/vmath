@@ -105,6 +105,10 @@ func (result *Quaternion) MakeIdentity() {
 	result[w] = 1.0
 }
 
+func (v *Quaternion) Copy(other *Quaternion) {
+	copy(v[:], other[:])
+}
+
 func (result *Quaternion) Lerp(t float32, quat0, quat1 *Quaternion) {
 	var tmpQ_0, tmpQ_1 Quaternion
 
