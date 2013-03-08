@@ -411,7 +411,7 @@ func (result *Matrix3) MakeRotationZ(radians float32) {
 	result[m3col2+z] = 1.0
 }
 
-func (result *Matrix3) MakeRotationXYZ(radiansXYZ *Vector3) {
+func (result *Matrix3) MakeRotationZYX(radiansXYZ *Vector3) {
 	sX := sin(radiansXYZ[x])
 	cX := cos(radiansXYZ[x])
 	sY := sin(radiansXYZ[y])
