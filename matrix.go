@@ -63,8 +63,10 @@ func (result *Matrix3) MakeFromQ(unitQuat *Quaternion) {
 	result[m3col2+z] = ((1.0 - qxqx2) - qyqy2)
 }
 
-func (v *Matrix3) Copy(other *Matrix3) {
-	copy(v[:], other[:])
+func (m *Matrix3) Copy(other *Matrix3) {
+	for i := range m {
+		m[i] = other[i]
+	}
 }
 
 func (result *Matrix3) MakeFromCols(col0, col1, col2 *Vector3) {
@@ -107,11 +109,17 @@ func (m *Matrix3) Elem(col, row int) float32 {
 func (m *Matrix3) Col(result *Vector3, col int) {
 	switch col {
 	case 0:
-		copy(result[:], m[m3col0:m3col1-1])
+		result[x] = m[m3col0+x]
+		result[y] = m[m3col0+y]
+		result[z] = m[m3col0+z]
 	case 1:
-		copy(result[:], m[m3col1:m3col2-1])
+		result[x] = m[m3col1+x]
+		result[y] = m[m3col1+y]
+		result[z] = m[m3col1+z]
 	case 2:
-		copy(result[:], m[m3col2:])
+		result[x] = m[m3col2+x]
+		result[y] = m[m3col2+y]
+		result[z] = m[m3col2+z]
 	}
 }
 
@@ -599,8 +607,10 @@ func (result *Matrix4) MakeFromT3(trns *Transform3) {
 
 }
 
-func (v *Matrix4) Copy(other *Matrix4) {
-	copy(v[:], other[:])
+func (m *Matrix4) Copy(other *Matrix4) {
+	for i := range m {
+		m[i] = other[i]
+	}
 }
 
 func (m *Matrix4) SetCol(col int, vec *Vector4) {
@@ -682,13 +692,25 @@ func (m *Matrix4) Elem(col, row int) float32 {
 func (m *Matrix4) Col(result *Vector4, col int) {
 	switch col {
 	case 0:
-		copy(result[:], m[m4col0:m4col1-1])
+		result[x] = m[m4col0+x]
+		result[y] = m[m4col0+y]
+		result[z] = m[m4col0+z]
+		result[w] = m[m4col0+w]
 	case 1:
-		copy(result[:], m[m4col1:m4col2-1])
+		result[x] = m[m4col1+x]
+		result[y] = m[m4col1+y]
+		result[z] = m[m4col1+z]
+		result[w] = m[m4col1+w]
 	case 2:
-		copy(result[:], m[m4col2:m4col3-1])
+		result[x] = m[m4col2+x]
+		result[y] = m[m4col2+y]
+		result[z] = m[m4col2+z]
+		result[w] = m[m4col2+w]
 	case 3:
-		copy(result[:], m[m4col3:])
+		result[x] = m[m4col3+x]
+		result[y] = m[m4col3+y]
+		result[z] = m[m4col3+z]
+		result[w] = m[m4col3+w]
 
 	}
 }
@@ -1651,8 +1673,10 @@ func (result *Transform3) MakeFromScalar(scalar float32) {
 	result[t3col3+z] = scalar
 }
 
-func (v *Transform3) Copy(other *Transform3) {
-	copy(v[:], other[:])
+func (t *Transform3) Copy(other *Transform3) {
+	for i := range t {
+		t[i] = other[i]
+	}
 }
 
 func (result *Transform3) MakeFromCols(col0, col1, col2, col3 *Vector3) {
@@ -1712,13 +1736,21 @@ func (t *Transform3) Elem(col, row int) float32 {
 func (t *Transform3) Col(result *Vector3, col int) {
 	switch col {
 	case 0:
-		copy(result[:], t[t3col0:t3col1-1])
+		result[x] = t[t3col0+x]
+		result[y] = t[t3col0+y]
+		result[z] = t[t3col0+z]
 	case 1:
-		copy(result[:], t[t3col1:t3col2-1])
+		result[x] = t[t3col1+x]
+		result[y] = t[t3col1+y]
+		result[z] = t[t3col1+z]
 	case 2:
-		copy(result[:], t[t3col2:t3col3-1])
+		result[x] = t[t3col2+x]
+		result[y] = t[t3col2+y]
+		result[z] = t[t3col2+z]
 	case 3:
-		copy(result[:], t[t3col3:])
+		result[x] = t[t3col3+x]
+		result[y] = t[t3col3+y]
+		result[z] = t[t3col3+z]
 
 	}
 }
