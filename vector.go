@@ -26,7 +26,9 @@ func (v *Vector3) MakeFromScalar(scalar float32) {
 }
 
 func (v *Vector3) Copy(other *Vector3) {
-	copy(v[:], other[:])
+	v[x] = other[x]
+	v[y] = other[y]
+	v[z] = other[z]
 }
 
 func (v *Vector3) MakeXAxis() {
@@ -357,7 +359,10 @@ func (result *Vector4) MakeFromScalar(scalar float32) {
 }
 
 func (v *Vector4) Copy(other *Vector4) {
-	copy(v[:], other[:])
+	v[x] = other[x]
+	v[y] = other[y]
+	v[z] = other[z]
+	v[w] = other[w]
 }
 
 func (v *Vector4) MakeXAxis() {
@@ -686,8 +691,10 @@ func (result *Point3) MakeFromScalar(scalar float32) {
 	result[z] = scalar
 }
 
-func (v *Point3) Copy(other *Point3) {
-	copy(v[:], other[:])
+func (p *Point3) Copy(other *Point3) {
+	p[x] = other[x]
+	p[y] = other[y]
+	p[z] = other[z]
 }
 
 func (result *Point3) Lerp(t float32, pnt0, pnt1 *Point3) {
