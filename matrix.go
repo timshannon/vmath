@@ -305,12 +305,14 @@ func (result *Vector3) MulM3Self(mat *Matrix3) {
 
 func (result *Matrix3) Mul(mat0, mat1 *Matrix3) {
 	if unsafe.Pointer(result) == unsafe.Pointer(mat0) {
-		result.MulSelf(mat1)
+		tmp := *result
+		result.Mul(&tmp, mat1)
 		return
 	}
 
 	if unsafe.Pointer(result) == unsafe.Pointer(mat1) {
-		result.MulSelf(mat0)
+		tmp := *result
+		result.Mul(mat0, &tmp)
 		return
 	}
 
@@ -1083,12 +1085,14 @@ func (result *Vector4) MulM4P3(mat *Matrix4, pnt *Point3) {
 
 func (result *Matrix4) Mul(mat0, mat1 *Matrix4) {
 	if unsafe.Pointer(result) == unsafe.Pointer(mat0) {
-		result.MulSelf(mat1)
+		tmp := *result
+		result.Mul(&tmp, mat1)
 		return
 	}
 
 	if unsafe.Pointer(result) == unsafe.Pointer(mat1) {
-		result.MulSelf(mat0)
+		tmp := *result
+		result.Mul(mat0, &tmp)
 		return
 	}
 	result[m4col0+x] = (((mat0[m4col0+x] * mat1[m4col0+x]) + (mat0[m4col1+x] * mat1[m4col0+y])) + (mat0[m4col2+x] * mat1[m4col0+z])) + (mat0[m4col3+x] * mat1[m4col0+w])
@@ -1115,7 +1119,7 @@ func (result *Matrix4) Mul(mat0, mat1 *Matrix4) {
 
 func (result *Matrix4) MulSelf(mat *Matrix4) {
 	tmp := *result
-	result.Mul(result, &tmp)
+	result.Mul(&tmp, mat)
 }
 
 func (result *Matrix4) MulT3(mat *Matrix4, tfrm *Transform3) {
@@ -1927,11 +1931,14 @@ func (result *Point3) MulT3Self(tfrm *Transform3) {
 
 func (result *Transform3) Mul(tfrm0, tfrm1 *Transform3) {
 	if unsafe.Pointer(result) == unsafe.Pointer(tfrm0) {
-		result.MulSelf(tfrm1)
+		tmp := *result
+		result.Mul(&tmp, tfrm1)
 		return
 	}
+
 	if unsafe.Pointer(result) == unsafe.Pointer(tfrm1) {
-		result.MulSelf(tfrm0)
+		tmp := *result
+		result.Mul(tfrm0, &tmp)
 		return
 	}
 
