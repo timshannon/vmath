@@ -1,3 +1,10 @@
+A vector / matrix / 3D math library written in Go for use in 3d applications based on 
+Sony's Vector Math library for 3-D linear algebra (vector, matrix, quaternion), with 
+inspiration from James Helferty's Go implemtation here: https://github.com/spate/vectormath.
+
+The main difference being James used structs, and I've implemented with pointers to arrays.
+
+
 All operations will be typed methods which apply to the owner of the method.
 
 //Multiplies against self
@@ -14,4 +21,7 @@ matrix.M3Mul(m1, m2)
 matrix.M3MulSelf(m1)
 This should allow the programmer to reuse a lot of variables and cut down on garbage.
 
-Note that on XXXSelf() methods, temp variables may need to be created to safely do the operation, so the quickest and least garbage creating option will always be the operations that aren't labeled "self", however passing the pointer to an object for a parameter that is the same as the calling object may result in incorrect calculations.
+Note that on XXXSelf() methods, temp variables may need to be created to safely do the 
+operation, so the quickest and least garbage creating option will always be the operations 
+that aren't labeled "self", however passing the pointer to an object for a parameter that 
+is the same as the calling object may result in incorrect calculations.
